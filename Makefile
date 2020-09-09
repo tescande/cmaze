@@ -1,6 +1,20 @@
+CC = gcc
+CFLAGS = -g -Wall
+LINKFLAGS =
+SRCS = cmaze.c
+OBJS = $(SRCS:%.c=%.o)
+
 default: all
 
 all: cmaze
 
-cmaze: cmaze.c list.h
-	gcc -g -Wall -o $@ $<
+.SUFFIXES: .c .o
+
+.c.o:
+	$(CC) -c $(CFLAGS) $< -o $@
+
+cmaze: $(OBJS)
+	$(CC) $(OBJS) -o $@ $(LINKFLAGS)
+
+clean:
+	rm -f cmaze *.o
