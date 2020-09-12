@@ -37,6 +37,8 @@ struct Maze {
 	int num_cols;
 	struct Cell *board;
 
+	bool difficult;
+
 	int path_len;
 	struct timeval solve_time;
 
@@ -47,7 +49,7 @@ struct Maze {
 struct Maze *maze_alloc(void);
 void maze_free(struct Maze *maze);
 
-int maze_create(struct Maze *maze, int num_rows, int num_cols);
+int maze_create(struct Maze *maze, int num_rows, int num_cols, bool difficult);
 int maze_solve(struct Maze *maze);
 void maze_print_board(struct Maze *maze);
 

@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 		goto exit_err;
 	}
 
-	err = maze_create(maze, num_rows, num_cols);
+	err = maze_create(maze, num_rows, num_cols, true);
 	if (err) {
 		printf("create_maze failed\n");
 		goto exit_err;

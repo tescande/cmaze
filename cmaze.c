@@ -237,7 +237,7 @@ void maze_print_board(struct Maze *maze)
 	}
 }
 
-int maze_create(struct Maze *maze, int num_rows, int num_cols)
+int maze_create(struct Maze *maze, int num_rows, int num_cols, bool difficult)
 {
 	int row;
 	int col;
@@ -270,6 +270,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols)
 
 	maze->num_rows = num_rows;
 	maze->num_cols = num_cols;
+	maze->difficult = difficult;
 
 	if (!maze->board) {
 		maze->board = malloc(num_rows * num_cols * sizeof(struct Cell));
@@ -352,6 +353,9 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols)
 	maze->end_cell = maze_get_cell(maze, maze->num_rows - 2, maze->num_cols - 1);
 	maze->end_cell->value = 2;
 	maze->end_cell->color = RED;
+
+	if (!difficult)
+		return 0;
 
 	for (i = 0; i < MAX(maze->num_rows, maze->num_cols); i++) {
 		while (1) {
