@@ -22,15 +22,7 @@ int main(int argc, char **argv)
 		goto exit_err;
 	}
 
-	maze->num_rows = num_rows;
-	maze->num_cols = num_cols;
-	maze->board = calloc(num_rows * num_cols, sizeof(struct Cell));
-	if (!maze->board) {
-		err = -ENOMEM;
-		goto exit_err;
-	}
-
-	err = maze_create(maze);
+	err = maze_create(maze, num_rows, num_cols);
 	if (err) {
 		printf("create_maze failed\n");
 		goto exit_err;

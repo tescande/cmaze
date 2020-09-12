@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/param.h>
 #include <sys/time.h>
 #include <time.h>
@@ -218,7 +219,7 @@ void maze_print_board(struct Maze *maze)
 	}
 }
 
-int maze_create(struct Maze *maze)
+int maze_create(struct Maze *maze, int num_rows, int num_cols)
 {
 	int row;
 	int col;
@@ -228,6 +229,39 @@ int maze_create(struct Maze *maze)
 	LIST_HEAD(stack);
 	int neighbours[4][2] = { { -2, 0 },  { 0, 2 }, { 2, 0 }, { 0, -2 } };
 	int walls[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
+
+	if (num_rows < MAZE_MIN_ROWS)
+		num_rows = MAZE_MIN_ROWS;
+	else if (num_rows > MAZE_MAX_ROWS)
+		num_rows = MAZE_MAX_ROWS;
+	else if ((num_rows & 1) == 0)
+		num_rows++;
+
+	if (num_cols < MAZE_MIN_COLS)
+		num_cols = MAZE_MIN_COLS;
+	else if (num_cols > MAZE_MAX_COLS)
+		num_cols = MAZE_MAX_COLS;
+	else if ((num_cols & 1) == 0)
+		num_cols++;
+
+	if (maze->board &&
+	    maze->num_rows * maze->num_cols < num_rows * num_cols) {
+		free(maze->board);
+		maze->board = NULL;
+	}
+
+	maze->num_rows = num_rows;
+	maze->num_cols = num_cols;
+
+	if (!maze->board) {
+		maze->board = malloc(num_rows * num_cols * sizeof(struct Cell));
+		if (!maze->board) {
+			fprintf(stderr, "Failed to allocate memory\n");
+			return -ENOMEM;
+		}
+	}
+
+	memset(maze->board, 0, num_rows * num_cols * sizeof(struct Cell));
 
 	for (row = 0; row < maze->num_rows; row++) {
 		for (col = 0; col < maze->num_cols; col++) {

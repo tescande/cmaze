@@ -6,6 +6,11 @@
 
 #include "list.h"
 
+#define MAZE_MIN_ROWS 21
+#define MAZE_MIN_COLS 21
+#define MAZE_MAX_ROWS 499
+#define MAZE_MAX_COLS 499
+
 struct Cell {
 	int row;
 	int col;
@@ -26,7 +31,7 @@ struct Maze {
 	struct Cell *end_cell;
 };
 
-int maze_create(struct Maze *maze);
+int maze_create(struct Maze *maze, int num_rows, int num_cols);
 int maze_solve(struct Maze *maze);
 void maze_print_board(struct Maze *maze);
 
