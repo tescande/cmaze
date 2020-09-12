@@ -30,14 +30,14 @@ int main(int argc, char **argv)
 		goto exit_err;
 	}
 
-	err = create_maze(maze);
+	err = maze_create(maze);
 	if (err) {
 		printf("create_maze failed\n");
 		goto exit_err;
 	}
 
-	solve(maze);
-	print_board(maze);
+	maze_solve(maze);
+	maze_print_board(maze);
 
 exit_err:
 	if (maze->board)

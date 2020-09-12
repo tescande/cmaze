@@ -10,138 +10,15 @@
 
 #include "cmaze.h"
 
-static struct Cell *get_cell(struct Maze *maze, int row, int col)
-{
-	if (row < 0 || row >= maze->num_rows ||
-	    col < 0 || col >= maze->num_cols) {
-		printf("Cannot get cell(%i, %i)\n", row, col);
-		return NULL;
-	}
+static struct Cell *maze_get_cell(struct Maze *maze, int row, int col);
 
-	return &maze->board[row * maze->num_cols + col];
-}
-
-static int is_wall(struct Maze *maze, int row, int col)
+static int cell_is_wall(struct Maze *maze, int row, int col)
 {
 	struct Cell *cell;
 
-	cell = get_cell(maze, row, col);
+	cell = maze_get_cell(maze, row, col);
 	if (cell)
 		return (cell->value == 0);
-
-	return 0;
-}
-
-int create_maze(struct Maze *maze)
-{
-	int row;
-	int col;
-	int r;
-	int i;
-	struct Cell *cell;
-	LIST_HEAD(stack);
-	int neighbours[4][2] = { { -2, 0 },  { 0, 2 }, { 2, 0 }, { 0, -2 } };
-	int walls[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
-
-	for (row = 0; row < maze->num_rows; row++) {
-		for (col = 0; col < maze->num_cols; col++) {
-			cell = get_cell(maze, row, col);
-
-			cell->row = row;
-			cell->col = col;
-			cell->value = ((row & 1) && (col & 1)) ? 1 : 0;
-		}
-	}
-
-	row = (random() % (maze->num_rows - 2)) / 2 * 2 + 1;
-	col = (random() % (maze->num_cols - 2)) / 2 * 2 + 1;
-	cell = get_cell(maze, row, col);
-	if (!cell || is_wall(maze, row, col))
-		return -EINVAL;
-
-	cell->value = 2;
-	list_add_tail(&cell->node, &stack);
-
-	while (! list_empty(&stack)) {
-		cell = list_last_entry(&stack, struct Cell, node);
-		list_del_init(&cell->node);
-		row = cell->row;
-		col = cell->col;
-
-		r = random() % 4;
-		for (i = 0; i < 4; i++) {
-			int *n = neighbours[(i + r) % 4];
-			int n_row = row + n[0];
-			int n_col = col + n[1];
-			struct Cell *n_cell;
-			struct Cell *w_cell;
-			int *w;
-
-			if (n_row < 0 || n_row >= maze->num_rows ||
-			    n_col < 0 || n_col >= maze->num_cols)
-				continue;
-
-			n_cell = get_cell(maze, n_row, n_col);
-			if (!n_cell)
-				return -EINVAL;
-
-			if (n_cell->value == 2)
-				continue;
-
-			list_add_tail(&cell->node, &stack);
-
-			n_cell->value = 2;
-			list_add_tail(&n_cell->node, &stack);
-
-			// Remove wall between cells
-			w = walls[(i + r) % 4];
-			w_cell = get_cell(maze, row + w[0], col + w[1]);
-			w_cell->value = 2;
-
-			break;
-		}
-
-		cell->value = 2;
-	}
-
-	maze->start_cell = get_cell(maze, 1, 0);
-	maze->start_cell->value = 2;
-	maze->end_cell = get_cell(maze, maze->num_rows - 2, maze->num_cols - 1);
-	maze->end_cell->value = 2;
-
-	for (i = 0; i < MAX(maze->num_rows, maze->num_cols); i++) {
-		while (1) {
-			row = (random() % (maze->num_rows - 2)) + 1;
-			col = (random() % (maze->num_cols - 2)) + 1;
-			cell = get_cell(maze, row, col);
-
-			if (! is_wall(maze, row, col))
-				continue;
-
-			r = 0;
-			if (is_wall(maze, row - 1, col))
-				r += 1;
-			if (is_wall(maze, row + 1, col))
-				r += 1;
-			// 1 wall up or down means we're on a
-			// wall end or at the top of a T. We need
-			// to choose another wall
-			if (r == 1)
-				continue;
-
-			if (is_wall(maze, row, col - 1))
-				r += 1;
-			if (is_wall(maze, row, col + 1))
-				r += 1;
-
-			// We're surounded by 2 walls verticaly
-			// or horizontaly. It's a match
-			if (r == 2)
-				break;
-		}
-
-		cell->value = 2;
-	}
 
 	return 0;
 }
@@ -165,13 +42,14 @@ static struct Cell *cell_new(int row, int col)
 	return cell;
 }
 
-static int distance_to_end(struct Maze *maze, struct Cell *cell)
+static int cell_distance(struct Cell *cell1, struct Cell *cell2)
 {
-	return (abs(cell->row - maze->end_cell->row) +
-		abs(cell->col - maze->end_cell->col));
+	return (abs(cell1->row - cell2->row) +
+		abs(cell1->col - cell2->col));
 }
 
-static bool lookup_cell_low_value(struct Maze *maze, struct list_head *list, struct Cell *cell)
+static bool cell_list_lookup_lower_value(struct Cell *cell,
+					 struct list_head *list)
 {
 	struct Cell *c;
 
@@ -183,7 +61,7 @@ static bool lookup_cell_low_value(struct Maze *maze, struct list_head *list, str
 	return false;
 }
 
-static bool cell_in_list(int row, int col, struct list_head *list)
+static bool cell_list_lookup(int row, int col, struct list_head *list)
 {
 	struct Cell *c;
 	struct Cell cell;
@@ -199,7 +77,18 @@ static bool cell_in_list(int row, int col, struct list_head *list)
 	return false;
 }
 
-int solve(struct Maze *maze)
+static struct Cell *maze_get_cell(struct Maze *maze, int row, int col)
+{
+	if (row < 0 || row >= maze->num_rows ||
+	    col < 0 || col >= maze->num_cols) {
+		printf("Cannot get cell(%i, %i)\n", row, col);
+		return NULL;
+	}
+
+	return &maze->board[row * maze->num_cols + col];
+}
+
+int maze_solve(struct Maze *maze)
 {
 	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
 	struct Cell *cell;
@@ -214,7 +103,7 @@ int solve(struct Maze *maze)
 
 	cell = cell_new(maze->start_cell->row, maze->start_cell->col);
 	cell->value = 0;
-	cell->heuristic = distance_to_end(maze, cell);
+	cell->heuristic = cell_distance(cell, maze->end_cell);
 
 	list_add_tail(&cell->node, &open);
 
@@ -229,7 +118,7 @@ int solve(struct Maze *maze)
 			path_len = 1;
 
 			while (cell) {
-				path = get_cell(maze, cell->row, cell->col);
+				path = maze_get_cell(maze, cell->row, cell->col);
 				path->is_path = true;
 				path_len += 1;
 
@@ -249,20 +138,20 @@ int solve(struct Maze *maze)
 			    n_col < 0 || n_col >= maze->num_cols)
 				continue;
 
-			if (is_wall(maze, n_row, n_col))
+			if (cell_is_wall(maze, n_row, n_col))
 				continue;
 
-			if (cell_in_list(n_row, n_col, &closed))
+			if (cell_list_lookup(n_row, n_col, &closed))
 				continue;
 
 			n_cell = cell_new(n_row, n_col);
 			n_cell->parent = cell;
 			n_cell->value = cell->value + 1;
 			n_cell->heuristic = n_cell->value +
-					    distance_to_end(maze, n_cell);
+					  cell_distance(n_cell, maze->end_cell);
 
 			// Lookup in open for same cell with a lower value
-			if (! lookup_cell_low_value(maze, &open, n_cell))
+			if (! cell_list_lookup_lower_value(n_cell, &open))
 				list_add(&n_cell->node, &open);
 			else
 				free(n_cell);
@@ -290,7 +179,7 @@ exit:
 	return 0;
 }
 
-void print_board(struct Maze *maze)
+void maze_print_board(struct Maze *maze)
 {
 	int row;
 	int col;
@@ -308,4 +197,118 @@ void print_board(struct Maze *maze)
 
 		printf("\n");
 	}
+}
+
+int maze_create(struct Maze *maze)
+{
+	int row;
+	int col;
+	int r;
+	int i;
+	struct Cell *cell;
+	LIST_HEAD(stack);
+	int neighbours[4][2] = { { -2, 0 },  { 0, 2 }, { 2, 0 }, { 0, -2 } };
+	int walls[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
+
+	for (row = 0; row < maze->num_rows; row++) {
+		for (col = 0; col < maze->num_cols; col++) {
+			cell = maze_get_cell(maze, row, col);
+
+			cell->row = row;
+			cell->col = col;
+			cell->value = ((row & 1) && (col & 1)) ? 1 : 0;
+		}
+	}
+
+	row = (random() % (maze->num_rows - 2)) / 2 * 2 + 1;
+	col = (random() % (maze->num_cols - 2)) / 2 * 2 + 1;
+	cell = maze_get_cell(maze, row, col);
+	if (!cell || cell_is_wall(maze, row, col))
+		return -EINVAL;
+
+	cell->value = 2;
+	list_add_tail(&cell->node, &stack);
+
+	while (! list_empty(&stack)) {
+		cell = list_last_entry(&stack, struct Cell, node);
+		list_del_init(&cell->node);
+		row = cell->row;
+		col = cell->col;
+
+		r = random() % 4;
+		for (i = 0; i < 4; i++) {
+			int *n = neighbours[(i + r) % 4];
+			int n_row = row + n[0];
+			int n_col = col + n[1];
+			struct Cell *n_cell;
+			struct Cell *w_cell;
+			int *w;
+
+			if (n_row < 0 || n_row >= maze->num_rows ||
+			    n_col < 0 || n_col >= maze->num_cols)
+				continue;
+
+			n_cell = maze_get_cell(maze, n_row, n_col);
+			if (!n_cell)
+				return -EINVAL;
+
+			if (n_cell->value == 2)
+				continue;
+
+			list_add_tail(&cell->node, &stack);
+
+			n_cell->value = 2;
+			list_add_tail(&n_cell->node, &stack);
+
+			// Remove wall between cells
+			w = walls[(i + r) % 4];
+			w_cell = maze_get_cell(maze, row + w[0], col + w[1]);
+			w_cell->value = 2;
+
+			break;
+		}
+
+		cell->value = 2;
+	}
+
+	maze->start_cell = maze_get_cell(maze, 1, 0);
+	maze->start_cell->value = 2;
+	maze->end_cell = maze_get_cell(maze, maze->num_rows - 2, maze->num_cols - 1);
+	maze->end_cell->value = 2;
+
+	for (i = 0; i < MAX(maze->num_rows, maze->num_cols); i++) {
+		while (1) {
+			row = (random() % (maze->num_rows - 2)) + 1;
+			col = (random() % (maze->num_cols - 2)) + 1;
+			cell = maze_get_cell(maze, row, col);
+
+			if (! cell_is_wall(maze, row, col))
+				continue;
+
+			r = 0;
+			if (cell_is_wall(maze, row - 1, col))
+				r += 1;
+			if (cell_is_wall(maze, row + 1, col))
+				r += 1;
+			// 1 wall up or down means we're on a
+			// wall end or at the top of a T. We need
+			// to choose another wall
+			if (r == 1)
+				continue;
+
+			if (cell_is_wall(maze, row, col - 1))
+				r += 1;
+			if (cell_is_wall(maze, row, col + 1))
+				r += 1;
+
+			// We're surounded by 2 walls verticaly
+			// or horizontaly. It's a match
+			if (r == 2)
+				break;
+		}
+
+		cell->value = 2;
+	}
+
+	return 0;
 }

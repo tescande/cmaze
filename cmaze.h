@@ -26,8 +26,8 @@ struct Maze {
 	struct Cell *end_cell;
 };
 
-int create_maze(struct Maze *maze);
-int solve(struct Maze *maze);
-void print_board(struct Maze *maze);
+int maze_create(struct Maze *maze);
+int maze_solve(struct Maze *maze);
+void maze_print_board(struct Maze *maze);
 
 #endif /* __MAZE_H__ */
