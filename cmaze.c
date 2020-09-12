@@ -88,6 +88,23 @@ static struct Cell *maze_get_cell(struct Maze *maze, int row, int col)
 	return &maze->board[row * maze->num_cols + col];
 }
 
+static void maze_clear_board(struct Maze *maze)
+{
+	struct Cell *cell;
+	int i;
+
+	for (i = 0; i < maze->num_rows * maze->num_cols; i++) {
+		cell = &maze->board[i];
+
+		if (cell->value == 0)
+			continue;
+
+		cell->value = 1;
+		cell->is_path = false;
+		cell->heuristic = 0;
+	}
+}
+
 int maze_solve(struct Maze *maze)
 {
 	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
@@ -100,6 +117,8 @@ int maze_solve(struct Maze *maze)
 	struct timeval start, end, elapsed;
 
 	gettimeofday(&start, NULL);
+
+	maze_clear_board(maze);
 
 	cell = cell_new(maze->start_cell->row, maze->start_cell->col);
 	cell->value = 0;
