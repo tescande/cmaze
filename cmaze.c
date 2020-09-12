@@ -114,9 +114,8 @@ int maze_solve(struct Maze *maze)
 	struct Cell *c;
 	LIST_HEAD(open);
 	LIST_HEAD(closed);
-	int path_len;
 	int i;
-	struct timeval start, end, elapsed;
+	struct timeval start, end;
 	struct Cell *board_cell;
 
 	gettimeofday(&start, NULL);
@@ -140,13 +139,13 @@ int maze_solve(struct Maze *maze)
 		if (cell_equals(cell, maze->end_cell)) {
 			struct Cell *path;
 
-			path_len = 1;
+			maze->path_len = 1;
 
 			while (cell) {
 				path = maze_get_cell(maze, cell->row, cell->col);
 				path->is_path = true;
 				path->color = GREEN;
-				path_len += 1;
+				maze->path_len++;
 
 				cell = cell->parent;
 			}
@@ -191,9 +190,7 @@ int maze_solve(struct Maze *maze)
 
 exit:
 	gettimeofday(&end, NULL);
-	timersub(&end, &start, &elapsed);
-	printf("time: %li.%03lis\nlength: %i\n",
-	       elapsed.tv_sec, elapsed.tv_usec / 1000, path_len);
+	timersub(&end, &start, &maze->solve_time);
 
 	list_for_each_entry_safe(cell, c, &open, node) {
 		list_del(&cell->node);

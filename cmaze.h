@@ -37,6 +37,9 @@ struct Maze {
 	int num_cols;
 	struct Cell *board;
 
+	int path_len;
+	struct timeval solve_time;
+
 	struct Cell *start_cell;
 	struct Cell *end_cell;
 };
