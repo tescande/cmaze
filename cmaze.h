@@ -28,17 +28,7 @@ typedef enum {
 	DARKGRAY,
 } CellColor;
 
-struct Cell {
-	int row;
-	int col;
-	int value;
-	int heuristic;
-	bool is_path;
-	CellColor color;
-
-	struct list_head node;
-	struct Cell *parent;
-};
+struct Cell;
 
 struct Maze {
 	int num_rows;

@@ -12,6 +12,18 @@
 
 #include "cmaze.h"
 
+struct Cell {
+	int row;
+	int col;
+	int value;
+	int heuristic;
+	bool is_path;
+	CellColor color;
+
+	struct list_head node;
+	struct Cell *parent;
+};
+
 static struct Cell *maze_get_cell(struct Maze *maze, int row, int col);
 
 static int cell_is_wall(struct Maze *maze, int row, int col)
