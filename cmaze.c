@@ -129,6 +129,9 @@ int maze_solve(struct Maze *maze)
 	list_add_tail(&cell->node, &open);
 
 	while (! list_empty(&open)) {
+		if (maze->solver_cancel)
+			goto exit;
+
 		cell = list_last_entry(&open, struct Cell, node);
 		list_del(&cell->node);
 		list_add(&cell->node, &closed);
@@ -201,6 +204,59 @@ exit:
 		list_del(&cell->node);
 		free(cell);
 	}
+
+	maze->solver_running = false;
+
+	return 0;
+}
+
+static void maze_solve_thread_join(struct Maze *maze)
+{
+	if (!maze->solver_thread)
+		return;
+
+	g_thread_join(maze->solver_thread);
+	maze->solver_thread = NULL;
+}
+
+static gboolean maze_solve_monitor(struct Maze *maze)
+{
+	int reason;
+
+	if (maze->solver_cancel)
+		reason = SOLVER_CB_REASON_CANCELED;
+	else if (maze->solver_running)
+		reason = SOLVER_CB_REASON_RUNNING;
+	else
+		reason = SOLVER_CB_REASON_SOLVED;
+
+	if (maze->solver_cb)
+		maze->solver_cb(reason, maze->solver_cb_userdata);
+
+	if (reason == SOLVER_CB_REASON_SOLVED)
+		maze_solve_thread_join(maze);
+
+	return maze->solver_running;
+}
+
+void maze_solve_thread_cancel(struct Maze *maze)
+{
+	maze->solver_cancel = true;
+
+	maze_solve_thread_join(maze);
+}
+
+int maze_solve_thread(struct Maze *maze, MazeSolverFunc cb, void *userdata)
+{
+	maze->solver_cancel = false;
+	maze->solver_running = true;
+	maze->solver_cb = cb;
+	maze->solver_cb_userdata = userdata;
+
+	maze->solver_thread = g_thread_new("solver",
+			      (GThreadFunc)maze_solve, maze);
+
+	g_timeout_add(100, (GSourceFunc)maze_solve_monitor, maze);
 
 	return 0;
 }
