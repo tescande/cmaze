@@ -365,3 +365,23 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols)
 
 	return 0;
 }
+
+struct Maze *maze_alloc(void)
+{
+	struct Maze *maze;
+
+	maze = calloc(1, sizeof(*maze));
+
+	return maze;
+}
+
+void maze_free(struct Maze *maze)
+{
+	if (!maze)
+		return;
+
+	if (maze->board)
+		free(maze->board);
+
+	free(maze);
+}

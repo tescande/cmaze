@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 
 	srand(time(NULL));
 
-	maze = calloc(1, sizeof(*maze));
+	maze = maze_alloc();
 	if (!maze) {
 		err = -ENOMEM;
 		goto exit_err;
@@ -32,11 +32,8 @@ int main(int argc, char **argv)
 	maze_print_board(maze);
 
 exit_err:
-	if (maze->board)
-		free(maze->board);
-
 	if (maze)
-		free(maze);
+		maze_free(maze);
 
 	return err;
 }
