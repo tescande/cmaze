@@ -103,6 +103,7 @@ static void maze_clear_board(struct Maze *maze)
 		cell->value = 1;
 		cell->is_path = false;
 		cell->heuristic = 0;
+		cell->color = WHITE;
 	}
 }
 
@@ -116,6 +117,7 @@ int maze_solve(struct Maze *maze)
 	int path_len;
 	int i;
 	struct timeval start, end, elapsed;
+	struct Cell *board_cell;
 
 	gettimeofday(&start, NULL);
 
@@ -132,6 +134,9 @@ int maze_solve(struct Maze *maze)
 		list_del(&cell->node);
 		list_add(&cell->node, &closed);
 
+		board_cell = maze_get_cell(maze, cell->row, cell->col);
+		board_cell->color = LIGHTGRAY;
+
 		if (cell_equals(cell, maze->end_cell)) {
 			struct Cell *path;
 
@@ -140,6 +145,7 @@ int maze_solve(struct Maze *maze)
 			while (cell) {
 				path = maze_get_cell(maze, cell->row, cell->col);
 				path->is_path = true;
+				path->color = GREEN;
 				path_len += 1;
 
 				cell = cell->parent;
@@ -171,10 +177,13 @@ int maze_solve(struct Maze *maze)
 					  cell_distance(n_cell, maze->end_cell);
 
 			// Lookup in open for same cell with a lower value
-			if (! cell_list_lookup_lower_value(n_cell, &open))
+			if (! cell_list_lookup_lower_value(n_cell, &open)) {
 				list_add(&n_cell->node, &open);
-			else
+				board_cell = maze_get_cell(maze, n_row, n_col);
+				board_cell->color = DARKGRAY;
+			} else {
 				free(n_cell);
+			}
 		}
 	}
 
@@ -197,6 +206,18 @@ exit:
 	}
 
 	return 0;
+}
+
+CellColor maze_get_cell_color(struct Maze *maze, int row, int col)
+{
+	struct Cell *cell;
+
+	cell = maze_get_cell(maze, row, col);
+
+	if (cell)
+		return cell->color;
+
+	return BLACK;
 }
 
 void maze_print_board(struct Maze *maze)
@@ -269,7 +290,10 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols)
 
 			cell->row = row;
 			cell->col = col;
-			cell->value = ((row & 1) && (col & 1)) ? 1 : 0;
+			if ((row & 1) && (col & 1)) {
+				cell->value = 1;
+				cell->color = WHITE;
+			}
 		}
 	}
 
@@ -317,6 +341,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols)
 			w = walls[(i + r) % 4];
 			w_cell = maze_get_cell(maze, row + w[0], col + w[1]);
 			w_cell->value = 2;
+			w_cell->color = WHITE;
 
 			break;
 		}
@@ -326,8 +351,10 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols)
 
 	maze->start_cell = maze_get_cell(maze, 1, 0);
 	maze->start_cell->value = 2;
+	maze->start_cell->color = RED;
 	maze->end_cell = maze_get_cell(maze, maze->num_rows - 2, maze->num_cols - 1);
 	maze->end_cell->value = 2;
+	maze->end_cell->color = RED;
 
 	for (i = 0; i < MAX(maze->num_rows, maze->num_cols); i++) {
 		while (1) {

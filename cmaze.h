@@ -11,12 +11,22 @@
 #define MAZE_MAX_ROWS 499
 #define MAZE_MAX_COLS 499
 
+typedef enum {
+	BLACK = 0,
+	WHITE,
+	RED,
+	GREEN,
+	LIGHTGRAY,
+	DARKGRAY,
+} CellColor;
+
 struct Cell {
 	int row;
 	int col;
 	int value;
 	int heuristic;
 	bool is_path;
+	CellColor color;
 
 	struct list_head node;
 	struct Cell *parent;
@@ -37,5 +47,7 @@ void maze_free(struct Maze *maze);
 int maze_create(struct Maze *maze, int num_rows, int num_cols);
 int maze_solve(struct Maze *maze);
 void maze_print_board(struct Maze *maze);
+
+CellColor maze_get_cell_color(struct Maze *maze, int row, int col);
 
 #endif /* __MAZE_H__ */
