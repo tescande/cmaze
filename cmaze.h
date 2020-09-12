@@ -46,6 +46,7 @@ struct Maze {
 	struct Cell *board;
 
 	bool difficult;
+	bool animate;
 
 	bool solver_running;
 	bool solver_cancel;

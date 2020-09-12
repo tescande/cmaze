@@ -8,6 +8,7 @@
 #include <sys/param.h>
 #include <sys/time.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "cmaze.h"
 
@@ -131,6 +132,9 @@ int maze_solve(struct Maze *maze)
 	while (! list_empty(&open)) {
 		if (maze->solver_cancel)
 			goto exit;
+
+		if (maze->animate)
+			usleep(100);
 
 		cell = list_last_entry(&open, struct Cell, node);
 		list_del(&cell->node);
