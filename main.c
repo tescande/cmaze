@@ -31,8 +31,8 @@ int main(int argc, char **argv)
 	maze_solve(maze);
 	maze_print_board(maze);
 
-	printf("Path length: %i\nTime: %li.%03lis\n", maze->path_len,
-	       maze->solve_time.tv_sec, maze->solve_time.tv_usec / 1000);
+	printf("Path length: %i\nTime: %.3gs\n",
+	       maze_get_path_length(maze), maze_get_solve_time(maze));
 
 exit_err:
 	if (maze)

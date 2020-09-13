@@ -29,27 +29,7 @@ typedef enum {
 } CellColor;
 
 struct Cell;
-
-struct Maze {
-	int num_rows;
-	int num_cols;
-	struct Cell *board;
-
-	bool difficult;
-	bool animate;
-
-	bool solver_running;
-	bool solver_cancel;
-	GThread *solver_thread;
-	MazeSolverFunc solver_cb;
-	void *solver_cb_userdata;
-
-	int path_len;
-	struct timeval solve_time;
-
-	struct Cell *start_cell;
-	struct Cell *end_cell;
-};
+struct Maze;
 
 struct Maze *maze_alloc(void);
 void maze_free(struct Maze *maze);
@@ -60,6 +40,18 @@ void maze_print_board(struct Maze *maze);
 
 int maze_solve_thread(struct Maze *maze, MazeSolverFunc cb, void *userdata);
 void maze_solve_thread_cancel(struct Maze *maze);
+
+bool maze_solver_running(struct Maze *maze);
+int maze_get_path_length(struct Maze *maze);
+double maze_get_solve_time(struct Maze *maze);
+
+void maze_set_animate(struct Maze *maze, bool animate);
+bool maze_get_animate(struct Maze *maze);
+
+int maze_get_num_rows(struct Maze *maze);
+int maze_get_num_cols(struct Maze *maze);
+
+bool maze_get_difficult(struct Maze *maze);
 
 CellColor maze_get_cell_color(struct Maze *maze, int row, int col);
 

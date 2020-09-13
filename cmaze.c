@@ -24,6 +24,27 @@ struct Cell {
 	struct Cell *parent;
 };
 
+struct Maze {
+	int num_rows;
+	int num_cols;
+	struct Cell *board;
+
+	bool difficult;
+	bool animate;
+
+	bool solver_running;
+	bool solver_cancel;
+	GThread *solver_thread;
+	MazeSolverFunc solver_cb;
+	void *solver_cb_userdata;
+
+	int path_len;
+	struct timeval solve_time;
+
+	struct Cell *start_cell;
+	struct Cell *end_cell;
+};
+
 static struct Cell *maze_get_cell(struct Maze *maze, int row, int col);
 
 static int cell_is_wall(struct Maze *maze, int row, int col)
@@ -100,6 +121,46 @@ static struct Cell *maze_get_cell(struct Maze *maze, int row, int col)
 	}
 
 	return &maze->board[row * maze->num_cols + col];
+}
+
+bool maze_solver_running(struct Maze *maze)
+{
+	return maze->solver_running;
+}
+
+void maze_set_animate(struct Maze *maze, bool animate)
+{
+	maze->animate = animate;
+}
+
+bool maze_get_animate(struct Maze *maze)
+{
+	return maze->animate;
+}
+
+int maze_get_num_rows(struct Maze *maze)
+{
+	return maze->num_rows;
+}
+
+int maze_get_num_cols(struct Maze *maze)
+{
+	return maze->num_cols;
+}
+
+bool maze_get_difficult(struct Maze *maze)
+{
+	return maze->difficult;
+}
+
+int maze_get_path_length(struct Maze *maze)
+{
+	return maze->path_len;
+}
+
+double maze_get_solve_time(struct Maze *maze)
+{
+	return maze->solve_time.tv_sec + (0.000001f * maze->solve_time.tv_usec);
 }
 
 static void maze_clear_board(struct Maze *maze)
