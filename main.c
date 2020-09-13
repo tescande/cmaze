@@ -28,11 +28,7 @@ int main(int argc, char **argv)
 		goto exit_err;
 	}
 
-	maze_solve(maze);
-	maze_print_board(maze);
-
-	printf("Path length: %i\nTime: %.3gs\n",
-	       maze_get_path_length(maze), maze_get_solve_time(maze));
+	err = gtk_maze_run(maze);
 
 exit_err:
 	if (maze)

@@ -55,4 +55,6 @@ bool maze_get_difficult(struct Maze *maze);
 
 CellColor maze_get_cell_color(struct Maze *maze, int row, int col);
 
+int gtk_maze_run(struct Maze *maze);
+
 #endif /* __MAZE_H__ */
