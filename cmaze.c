@@ -67,12 +67,10 @@ static struct Cell *cell_new(int row, int col)
 {
 	struct Cell *cell;
 
-	cell = calloc(1, sizeof(*cell));
-	if (cell) {
-		cell->row = row;
-		cell->col = col;
-		//cell->node = LIST_HEAD_INIT(node);
-	}
+	cell = g_malloc0(sizeof(*cell));
+	cell->row = row;
+	cell->col = col;
+	INIT_LIST_HEAD(&cell->node);
 
 	return cell;
 }
@@ -261,7 +259,7 @@ int maze_solve(struct Maze *maze)
 				board_cell = maze_get_cell(maze, n_row, n_col);
 				board_cell->color = DARKGRAY;
 			} else {
-				free(n_cell);
+				g_free(n_cell);
 			}
 		}
 	}
@@ -274,12 +272,12 @@ exit:
 
 	list_for_each_entry_safe(cell, c, &open, node) {
 		list_del(&cell->node);
-		free(cell);
+		g_free(cell);
 	}
 
 	list_for_each_entry_safe(cell, c, &closed, node) {
 		list_del(&cell->node);
-		free(cell);
+		g_free(cell);
 	}
 
 	maze->solver_running = false;
@@ -397,7 +395,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, bool difficult)
 
 	if (maze->board &&
 	    maze->num_rows * maze->num_cols < num_rows * num_cols) {
-		free(maze->board);
+		g_free(maze->board);
 		maze->board = NULL;
 	}
 
@@ -405,13 +403,8 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, bool difficult)
 	maze->num_cols = num_cols;
 	maze->difficult = difficult;
 
-	if (!maze->board) {
-		maze->board = malloc(num_rows * num_cols * sizeof(struct Cell));
-		if (!maze->board) {
-			fprintf(stderr, "Failed to allocate memory\n");
-			return -ENOMEM;
-		}
-	}
+	if (!maze->board)
+		maze->board = g_malloc(num_rows * num_cols * sizeof(struct Cell));
 
 	memset(maze->board, 0, num_rows * num_cols * sizeof(struct Cell));
 
@@ -531,7 +524,7 @@ struct Maze *maze_alloc(void)
 {
 	struct Maze *maze;
 
-	maze = calloc(1, sizeof(*maze));
+	maze = g_malloc0(sizeof(*maze));
 
 	return maze;
 }
@@ -542,7 +535,7 @@ void maze_free(struct Maze *maze)
 		return;
 
 	if (maze->board)
-		free(maze->board);
+		g_free(maze->board);
 
-	free(maze);
+	g_free(maze);
 }
