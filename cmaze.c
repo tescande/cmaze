@@ -81,14 +81,24 @@ static int cell_distance(struct Cell *cell1, struct Cell *cell2)
 		abs(cell1->col - cell2->col));
 }
 
-static bool cell_list_lookup_lower_value(struct Cell *cell,
-					 struct list_head *list)
+static int cell_cmp_heuristic(const struct Cell *c1, const struct Cell *c2)
+{
+	if (c1->heuristic <= c2->heuristic)
+		return -1;
+
+	return 1;
+}
+
+static bool cell_list_lookup_lower_value(struct Cell *cell, GList *list)
 {
 	struct Cell *c;
 
-	list_for_each_entry(c, list, node) {
+	while (list) {
+		c = list->data;
 		if (cell_equals(c, cell) && c->value < cell->value)
 			return true;
+
+		list = list->next;
 	}
 
 	return false;
@@ -184,8 +194,9 @@ int maze_solve(struct Maze *maze)
 	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
 	struct Cell *cell;
 	struct Cell *c;
-	LIST_HEAD(open);
+	GList *open = NULL;
 	LIST_HEAD(closed);
+	GList *elem;
 	int i;
 	struct timeval start, end;
 	struct Cell *board_cell;
@@ -198,17 +209,19 @@ int maze_solve(struct Maze *maze)
 	cell->value = 0;
 	cell->heuristic = cell_distance(cell, maze->end_cell);
 
-	list_add_tail(&cell->node, &open);
+	open = g_list_append(open, cell);
 
-	while (! list_empty(&open)) {
+	while (open != NULL) {
 		if (maze->solver_cancel)
 			goto exit;
 
 		if (maze->animate)
 			usleep(100);
 
-		cell = list_last_entry(&open, struct Cell, node);
-		list_del(&cell->node);
+		elem = g_list_first(open);
+		cell = (struct Cell *)elem->data;
+		open = g_list_delete_link(open, elem);
+
 		list_add(&cell->node, &closed);
 
 		board_cell = maze_get_cell(maze, cell->row, cell->col);
@@ -254,8 +267,10 @@ int maze_solve(struct Maze *maze)
 					  cell_distance(n_cell, maze->end_cell);
 
 			// Lookup in open for same cell with a lower value
-			if (! cell_list_lookup_lower_value(n_cell, &open)) {
-				list_add(&n_cell->node, &open);
+			if (! cell_list_lookup_lower_value(n_cell, open)) {
+				open = g_list_insert_sorted(open, n_cell,
+					      (GCompareFunc)cell_cmp_heuristic);
+
 				board_cell = maze_get_cell(maze, n_row, n_col);
 				board_cell->color = DARKGRAY;
 			} else {
@@ -270,10 +285,7 @@ exit:
 	gettimeofday(&end, NULL);
 	timersub(&end, &start, &maze->solve_time);
 
-	list_for_each_entry_safe(cell, c, &open, node) {
-		list_del(&cell->node);
-		g_free(cell);
-	}
+	g_list_free_full(open, (GDestroyNotify)g_free);
 
 	list_for_each_entry_safe(cell, c, &closed, node) {
 		list_del(&cell->node);
