@@ -6,8 +6,6 @@
 
 #include <glib.h>
 
-#include "list.h"
-
 #define MAZE_MIN_ROWS 21
 #define MAZE_MIN_COLS 21
 #define MAZE_MAX_ROWS 499

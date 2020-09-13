@@ -20,7 +20,6 @@ struct Cell {
 	bool is_path;
 	CellColor color;
 
-	struct list_head node;
 	struct Cell *parent;
 };
 
@@ -70,7 +69,6 @@ static struct Cell *cell_new(int row, int col)
 	cell = g_malloc0(sizeof(*cell));
 	cell->row = row;
 	cell->col = col;
-	INIT_LIST_HEAD(&cell->node);
 
 	return cell;
 }

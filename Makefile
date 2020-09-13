@@ -20,5 +20,5 @@ clean:
 	rm -f cmaze *.o
 
 main.o: cmaze.h
-cmaze.o: list.h cmaze.h
+cmaze.o: cmaze.h
 gtk_maze.o: cmaze.h
