@@ -385,7 +385,8 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, bool difficult)
 	int r;
 	int i;
 	struct Cell *cell;
-	LIST_HEAD(stack);
+	GList *stack = NULL;
+	GList *elem;
 	int neighbours[4][2] = { { -2, 0 },  { 0, 2 }, { 2, 0 }, { 0, -2 } };
 	int walls[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
 
@@ -438,11 +439,13 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, bool difficult)
 		return -EINVAL;
 
 	cell->value = 2;
-	list_add_tail(&cell->node, &stack);
+	stack = g_list_prepend(stack, cell);
 
-	while (! list_empty(&stack)) {
-		cell = list_last_entry(&stack, struct Cell, node);
-		list_del_init(&cell->node);
+	while (stack != NULL) {
+		elem = g_list_first(stack);
+		cell = elem->data;
+		stack = g_list_delete_link(stack, elem);
+
 		row = cell->row;
 		col = cell->col;
 
@@ -466,10 +469,10 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, bool difficult)
 			if (n_cell->value == 2)
 				continue;
 
-			list_add_tail(&cell->node, &stack);
+			stack = g_list_prepend(stack, cell);
 
 			n_cell->value = 2;
-			list_add_tail(&n_cell->node, &stack);
+			stack = g_list_prepend(stack, n_cell);
 
 			// Remove wall between cells
 			w = walls[(i + r) % 4];
