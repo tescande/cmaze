@@ -104,7 +104,7 @@ static bool cell_list_lookup_lower_value(struct Cell *cell, GList *list)
 	return false;
 }
 
-static bool cell_list_lookup(int row, int col, struct list_head *list)
+static bool cell_list_lookup(int row, int col, GList *list)
 {
 	struct Cell *c;
 	struct Cell cell;
@@ -112,9 +112,12 @@ static bool cell_list_lookup(int row, int col, struct list_head *list)
 	cell.row = row;
 	cell.col = col;
 
-	list_for_each_entry(c, list, node) {
+	while (list) {
+		c = list->data;
 		if (cell_equals(c, &cell))
 			return true;
+
+		list = list->next;
 	}
 
 	return false;
@@ -193,9 +196,8 @@ int maze_solve(struct Maze *maze)
 {
 	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
 	struct Cell *cell;
-	struct Cell *c;
 	GList *open = NULL;
-	LIST_HEAD(closed);
+	GList *closed = NULL;
 	GList *elem;
 	int i;
 	struct timeval start, end;
@@ -222,7 +224,7 @@ int maze_solve(struct Maze *maze)
 		cell = (struct Cell *)elem->data;
 		open = g_list_delete_link(open, elem);
 
-		list_add(&cell->node, &closed);
+		closed = g_list_prepend(closed, cell);
 
 		board_cell = maze_get_cell(maze, cell->row, cell->col);
 		board_cell->color = LIGHTGRAY;
@@ -257,7 +259,7 @@ int maze_solve(struct Maze *maze)
 			if (cell_is_wall(maze, n_row, n_col))
 				continue;
 
-			if (cell_list_lookup(n_row, n_col, &closed))
+			if (cell_list_lookup(n_row, n_col, closed))
 				continue;
 
 			n_cell = cell_new(n_row, n_col);
@@ -286,11 +288,7 @@ exit:
 	timersub(&end, &start, &maze->solve_time);
 
 	g_list_free_full(open, (GDestroyNotify)g_free);
-
-	list_for_each_entry_safe(cell, c, &closed, node) {
-		list_del(&cell->node);
-		g_free(cell);
-	}
+	g_list_free_full(closed, (GDestroyNotify)g_free);
 
 	maze->solver_running = false;
 
