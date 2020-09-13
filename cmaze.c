@@ -515,6 +515,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, bool difficult)
 		}
 
 		cell->value = 2;
+		cell->color = WHITE;
 	}
 
 	return 0;
