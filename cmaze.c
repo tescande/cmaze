@@ -105,25 +105,6 @@ static gint cell_cmp_lower_value(struct Cell *c1, struct Cell *c2)
 	return 1;
 }
 
-static bool cell_list_lookup(int row, int col, GList *list)
-{
-	struct Cell *c;
-	struct Cell cell;
-
-	cell.row = row;
-	cell.col = col;
-
-	while (list) {
-		c = list->data;
-		if (!cell_cmp(c, &cell))
-			return true;
-
-		list = list->next;
-	}
-
-	return false;
-}
-
 static struct Cell *maze_get_cell(struct Maze *maze, int row, int col)
 {
 	if (row < 0 || row >= maze->num_rows ||
@@ -260,10 +241,14 @@ int maze_solve(struct Maze *maze)
 			if (cell_is_wall(maze, n_row, n_col))
 				continue;
 
-			if (cell_list_lookup(n_row, n_col, closed))
-				continue;
-
 			n_cell = cell_new(n_row, n_col);
+
+			if (g_list_find_custom(closed, n_cell,
+					       (GCompareFunc)cell_cmp)) {
+				g_free(n_cell);
+				continue;
+			}
+
 			n_cell->parent = cell;
 			n_cell->value = cell->value + 1;
 			n_cell->heuristic = n_cell->value +
