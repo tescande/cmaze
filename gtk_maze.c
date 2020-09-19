@@ -281,6 +281,7 @@ static void on_insert_text(GtkEditable *editable, char *new_text,
 static void on_destroy(GtkWindow *win, struct MazeGui *gui)
 {
 	cairo_surface_free(gui);
+	g_object_ref(gui->drawing_area);
 }
 
 static void gtk_app_activate(GtkApplication *app, gpointer user_data)
@@ -315,7 +316,7 @@ static void gtk_app_activate(GtkApplication *app, gpointer user_data)
 	gtk_box_pack_start(GTK_BOX(hbox), grid, false, false, 6);
 
 	drawing_area = gtk_drawing_area_new();
-	gui->drawing_area = drawing_area;
+	gui->drawing_area = g_object_ref(drawing_area);
 	gtk_widget_set_size_request(drawing_area, 500, 500);
 	gtk_box_pack_start(GTK_BOX(hbox), drawing_area, true, true, 6);
 	g_signal_connect(G_OBJECT(drawing_area), "draw",
