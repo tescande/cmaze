@@ -57,9 +57,19 @@ static int cell_is_wall(struct Maze *maze, int row, int col)
 	return 0;
 }
 
-static int cell_equals(struct Cell *c1, struct Cell *c2)
+static int cell_cmp(struct Cell *c1, struct Cell *c2)
 {
-	return (c1->row == c2->row && c1->col == c2->col);
+	if (c1->row < c2->row)
+		return -1;
+	if (c1->row > c2->row)
+		return 1;
+
+	if (c1->col < c2->col)
+		return -1;
+	if (c1->col > c2->col)
+		return 1;
+
+	return 0;
 }
 
 static struct Cell *cell_new(int row, int col)
@@ -93,7 +103,7 @@ static bool cell_list_lookup_lower_value(struct Cell *cell, GList *list)
 
 	while (list) {
 		c = list->data;
-		if (cell_equals(c, cell) && c->value < cell->value)
+		if (!cell_cmp(c, cell) && c->value < cell->value)
 			return true;
 
 		list = list->next;
@@ -112,7 +122,7 @@ static bool cell_list_lookup(int row, int col, GList *list)
 
 	while (list) {
 		c = list->data;
-		if (cell_equals(c, &cell))
+		if (!cell_cmp(c, &cell))
 			return true;
 
 		list = list->next;
@@ -227,7 +237,7 @@ int maze_solve(struct Maze *maze)
 		board_cell = maze_get_cell(maze, cell->row, cell->col);
 		board_cell->color = LIGHTGRAY;
 
-		if (cell_equals(cell, maze->end_cell)) {
+		if (!cell_cmp(cell, maze->end_cell)) {
 			struct Cell *path;
 
 			maze->path_len = 1;
