@@ -34,6 +34,7 @@ struct Maze {
 	bool solver_running;
 	bool solver_cancel;
 	GThread *solver_thread;
+	SolverAlgorithm solver_algorithm;
 	MazeSolverFunc solver_cb;
 	void *solver_cb_userdata;
 
@@ -154,6 +155,16 @@ double maze_get_solve_time(struct Maze *maze)
 	return maze->solve_time.tv_sec + (0.000001f * maze->solve_time.tv_usec);
 }
 
+SolverAlgorithm maze_get_solver_algorithm(struct Maze *maze)
+{
+	return maze->solver_algorithm;
+}
+
+void maze_set_solver_algorithm(struct Maze *maze, SolverAlgorithm algo)
+{
+	maze->solver_algorithm = algo;
+}
+
 static void maze_clear_board(struct Maze *maze)
 {
 	struct Cell *cell;
@@ -172,7 +183,7 @@ static void maze_clear_board(struct Maze *maze)
 	}
 }
 
-int maze_solve(struct Maze *maze)
+int maze_solve_a_star(struct Maze *maze)
 {
 	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
 	struct Cell *cell;
@@ -181,12 +192,7 @@ int maze_solve(struct Maze *maze)
 	GList *elem;
 	int i;
 	int err = 0;
-	struct timeval start, end;
 	struct Cell *board_cell;
-
-	gettimeofday(&start, NULL);
-
-	maze_clear_board(maze);
 
 	cell = cell_new(maze->start_cell->row, maze->start_cell->col);
 	cell->value = 0;
@@ -272,13 +278,8 @@ int maze_solve(struct Maze *maze)
 	printf("No path found!\n");
 
 exit:
-	gettimeofday(&end, NULL);
-	timersub(&end, &start, &maze->solve_time);
-
 	g_list_free_full(open, (GDestroyNotify)g_free);
 	g_list_free_full(closed, (GDestroyNotify)g_free);
-
-	maze->solver_running = false;
 
 	return err;
 }
@@ -317,6 +318,36 @@ void maze_solve_thread_cancel(struct Maze *maze)
 	maze->solver_cancel = true;
 
 	maze_solve_thread_join(maze);
+}
+
+int maze_solve(struct Maze *maze)
+{
+	struct timeval start, end;
+	int (*solver_func)(struct Maze *);
+	int result;
+
+	switch (maze->solver_algorithm) {
+	case SOLVER_A_STAR:
+		solver_func = maze_solve_a_star;
+		break;
+	default:
+		fprintf(stderr, "Invalid solver enum %d\n",
+			maze->solver_algorithm);
+		return -EINVAL;
+	}
+
+	maze_clear_board(maze);
+
+	gettimeofday(&start, NULL);
+
+	result = solver_func(maze);
+
+	gettimeofday(&end, NULL);
+	timersub(&end, &start, &maze->solve_time);
+
+	maze->solver_running = false;
+
+	return result;
 }
 
 int maze_solve_thread(struct Maze *maze, MazeSolverFunc cb, void *userdata)

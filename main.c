@@ -66,6 +66,8 @@ int main(int argc, char **argv)
 		goto exit_err;
 	}
 
+	maze_set_solver_algorithm(maze, SOLVER_A_STAR);
+
 	maze_set_animate(maze, animate);
 
 	err = maze_create(maze, num_rows, num_cols, difficult);

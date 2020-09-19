@@ -26,6 +26,10 @@ typedef enum {
 	DARKGRAY,
 } CellColor;
 
+typedef enum {
+	SOLVER_A_STAR = 0,
+} SolverAlgorithm;
+
 struct Cell;
 struct Maze;
 
@@ -50,6 +54,9 @@ int maze_get_num_rows(struct Maze *maze);
 int maze_get_num_cols(struct Maze *maze);
 
 bool maze_get_difficult(struct Maze *maze);
+
+SolverAlgorithm maze_get_solver_algorithm(struct Maze *maze);
+void maze_set_solver_algorithm(struct Maze *maze, SolverAlgorithm algo);
 
 CellColor maze_get_cell_color(struct Maze *maze, int row, int col);
 
