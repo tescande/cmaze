@@ -284,6 +284,108 @@ exit:
 	return err;
 }
 
+#define ORIENTATION_NORTH 0
+#define ORIENTATION_EAST  1
+#define ORIENTATION_SOUTH 2
+#define ORIENTATION_WEST  3
+
+int maze_solve_hand_man(struct Maze *maze)
+{
+	int left_neighbours[4][2] = { { 0, -1 }, { -1, 0 }, { 0, 1 }, { 1, 0 } };
+	int right_neighbours[4][2] = { { 0, 1 },  { -1, 0 }, { 0, -1 }, { 1, 0 } };
+	int *neighbours;
+	struct Cell *cell;
+	struct Cell *n_cell;
+	int i;
+	int orientation;
+	int row;
+	int col;
+	int err = 0;
+	int value;
+	int low_value;
+
+	neighbours = (maze->solver_algorithm == SOLVER_LEFT_HAND_MAN) ?
+			(int *)left_neighbours :
+			(int *)right_neighbours;
+
+	cell = maze->start_cell;
+	orientation = ORIENTATION_EAST;
+
+	value = 2;
+
+	while (cell != maze->end_cell) {
+		if (maze->solver_cancel) {
+			err = -EINTR;
+			goto exit;
+		}
+
+		if (maze->animate)
+			usleep(300);
+
+		cell->color = LIGHTGRAY;
+		cell->value = value++;
+
+		row = cell->row;
+		col = cell->col;
+
+		for (i = 0; i < 4; i++) {
+			int *n = neighbours + (((orientation + i) & 0x3) * 2);
+			int n_row = row + n[0];
+			int n_col = col + n[1];
+
+			cell = maze_get_cell(maze, n_row, n_col);
+			if (cell && cell->value > 0) {
+				/* Not a wall. Go on */
+				orientation = (orientation + i - 1) & 0x3;
+				break;
+			}
+		}
+	}
+
+	/* Last cell */
+	cell->value = value++;
+	maze->path_len = 1;
+
+	// Light up the shortest path
+	while (cell != maze->start_cell) {
+		if (maze->solver_cancel) {
+			err = -EINTR;
+			goto exit;
+		}
+
+		maze->path_len++;
+
+		cell->color = GREEN;
+
+		row = cell->row;
+		col = cell->col;
+
+		low_value = cell->value;
+
+		for (i = 0; i < 4; i++) {
+			int *n = right_neighbours[i];
+			int n_row = row + n[0];
+			int n_col = col + n[1];
+
+			n_cell = maze_get_cell(maze, n_row, n_col);
+			if (!n_cell)
+				continue;
+
+			if (n_cell->value > 1 && n_cell->value < low_value) {
+				low_value = n_cell->value;
+				cell = n_cell;
+			}
+		}
+	}
+
+	/* First cell */
+	cell->color = GREEN;
+	maze->path_len++;
+
+exit:
+	return err;
+}
+
 static void maze_solve_thread_join(struct Maze *maze)
 {
 	if (!maze->solver_thread)
@@ -329,6 +431,10 @@ int maze_solve(struct Maze *maze)
 	switch (maze->solver_algorithm) {
 	case SOLVER_A_STAR:
 		solver_func = maze_solve_a_star;
+		break;
+	case SOLVER_LEFT_HAND_MAN:
+	case SOLVER_RIGHT_HAND_MAN:
+		solver_func = maze_solve_hand_man;
 		break;
 	default:
 		fprintf(stderr, "Invalid solver enum %d\n",

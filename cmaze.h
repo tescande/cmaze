@@ -28,6 +28,8 @@ typedef enum {
 
 typedef enum {
 	SOLVER_A_STAR = 0,
+	SOLVER_LEFT_HAND_MAN,
+	SOLVER_RIGHT_HAND_MAN,
 } SolverAlgorithm;
 
 struct Cell;
