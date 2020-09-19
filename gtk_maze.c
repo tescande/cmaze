@@ -16,6 +16,11 @@ struct MazeGui {
 	GtkWidget *new_button;
 	GtkWidget *solve_button;
 	GtkToggleButton *difficult_check;
+
+	int cell_width;
+	int cell_height;
+	cairo_surface_t *surface;
+	cairo_t *cr;
 };
 
 static void get_gdk_color(CellColor cell_color, GdkRGBA *color)
@@ -111,6 +116,39 @@ static void entry_set_number(GtkEntry *entry, int number)
 	gtk_entry_set_text(entry, buf);
 }
 
+static void cairo_surface_free(struct MazeGui *gui)
+{
+	cairo_destroy(gui->cr);
+	cairo_surface_destroy(gui->surface);
+}
+
+static void cairo_surface_alloc(struct MazeGui *gui)
+{
+	GtkAllocation rect;
+	int num_rows;
+	int num_cols;
+	int surface_width;
+	int surface_height;
+
+	num_rows = maze_get_num_rows(gui->maze);
+	num_cols = maze_get_num_cols(gui->maze);
+
+	gdk_monitor_get_workarea(
+		gdk_display_get_primary_monitor(gdk_display_get_default()),
+		&rect);
+
+	gui->cell_width = (rect.width / num_cols) + 1;
+	gui->cell_height = (rect.height / num_rows) + 1;
+
+	surface_width = gui->cell_width * num_cols;
+	surface_height = gui->cell_height * num_rows;
+
+	gui->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
+						  surface_width,
+						  surface_height);
+	gui->cr = cairo_create(gui->surface);
+}
+
 void on_new_clicked(GtkButton *button, struct MazeGui *gui)
 {
 	int num_rows;
@@ -125,6 +163,9 @@ void on_new_clicked(GtkButton *button, struct MazeGui *gui)
 
 	entry_set_number(gui->entry_num_rows, maze_get_num_rows(gui->maze));
 	entry_set_number(gui->entry_num_cols, maze_get_num_cols(gui->maze));
+
+	cairo_surface_free(gui);
+	cairo_surface_alloc(gui);
 
 	gtk_widget_queue_draw(gui->drawing_area);
 }
@@ -170,43 +211,56 @@ void on_animate_toggled(GtkToggleButton *button, struct MazeGui *gui)
 
 void on_draw(GtkDrawingArea *da, cairo_t *cr, struct MazeGui *gui)
 {
-	GtkAllocation rect;
+	GtkAllocation da_rect;
 	int cell_width;
 	int cell_height;
-	int x_padding;
-	int y_padding;
 	int row, col;
 	CellColor cell_color;
 	GdkRGBA color;
 	struct Maze *maze = gui->maze;
 	int num_rows;
 	int num_cols;
+	int surface_width;
+	int surface_height;
+	double scale_x;
+	double scale_y;
 
-	gtk_widget_get_allocated_size(GTK_WIDGET(da), &rect, NULL);
+	gtk_widget_get_allocated_size(GTK_WIDGET(da), &da_rect, NULL);
 
 	num_rows = maze_get_num_rows(maze);
 	num_cols = maze_get_num_cols(maze);
 
-	cell_width = rect.width / num_cols;
-	cell_height = rect.height / num_rows;
-
-	x_padding = (rect.width - (cell_width * num_cols)) / 2;
-	y_padding = (rect.height - (cell_height * num_rows)) / 2;
+	cell_width = gui->cell_width;
+	cell_height = gui->cell_height;
 
 	for (row = 0; row < num_rows; row++) {
 		for (col = 0; col < num_cols; col++) {
+			GtkAllocation rect;
+
 			cell_color = maze_get_cell_color(maze, row, col);
 			get_gdk_color(cell_color, &color);
 
-			rect.x = (col * cell_width) + x_padding;
-			rect.y = (row * cell_height) + y_padding;
+			rect.x = col * cell_width;
+			rect.y = row * cell_height;
 			rect.width = cell_width;
 			rect.height = cell_height;
-			gdk_cairo_set_source_rgba(cr, &color);
-			gdk_cairo_rectangle(cr, &rect);
-			cairo_fill(cr);
+
+			gdk_cairo_set_source_rgba(gui->cr, &color);
+			gdk_cairo_rectangle(gui->cr, &rect);
+
+			cairo_fill(gui->cr);
 		}
 	}
+
+	surface_width = cairo_image_surface_get_width(gui->surface);
+	surface_height = cairo_image_surface_get_height(gui->surface);
+
+	scale_x = (double)da_rect.width / surface_width;
+	scale_y = (double)da_rect.height / surface_height;
+
+	cairo_scale(cr, scale_x, scale_y);
+	cairo_set_source_surface(cr, gui->surface, 0.0, 0.0);
+	cairo_paint(cr);
 }
 
 static void on_insert_text(GtkEditable *editable, char *new_text,
@@ -222,6 +276,11 @@ static void on_insert_text(GtkEditable *editable, char *new_text,
 			return;
 		}
 	}
+}
+
+static void on_destroy(GtkWindow *win, struct MazeGui *gui)
+{
+	cairo_surface_free(gui);
 }
 
 static void gtk_app_activate(GtkApplication *app, gpointer user_data)
@@ -240,8 +299,12 @@ static void gtk_app_activate(GtkApplication *app, gpointer user_data)
 	GtkWidget *button;
 	GtkWidget *label;
 
+	cairo_surface_alloc(gui);
+
 	window = gtk_application_window_new(app);
 	gtk_window_set_title(GTK_WINDOW(window), "CMaze");
+	g_signal_connect(G_OBJECT(window), "destroy",
+			 G_CALLBACK(on_destroy), gui);
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 3);
 	gtk_container_add(GTK_CONTAINER(window), hbox);
