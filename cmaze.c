@@ -377,6 +377,9 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, bool difficult)
 	int neighbours[4][2] = { { -2, 0 },  { 0, 2 }, { 2, 0 }, { 0, -2 } };
 	int walls[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
 
+	if (maze->solver_running)
+		return -EINPROGRESS;
+
 	if (num_rows < MAZE_MIN_ROWS)
 		num_rows = MAZE_MIN_ROWS;
 	else if (num_rows > MAZE_MAX_ROWS)
