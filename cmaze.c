@@ -97,19 +97,12 @@ static int cell_cmp_heuristic(const struct Cell *c1, const struct Cell *c2)
 	return 1;
 }
 
-static bool cell_list_lookup_lower_value(struct Cell *cell, GList *list)
+static gint cell_cmp_lower_value(struct Cell *c1, struct Cell *c2)
 {
-	struct Cell *c;
+	if (!cell_cmp(c1, c2) && c1->value < c2->value)
+		return 0;
 
-	while (list) {
-		c = list->data;
-		if (!cell_cmp(c, cell) && c->value < cell->value)
-			return true;
-
-		list = list->next;
-	}
-
-	return false;
+	return 1;
 }
 
 static bool cell_list_lookup(int row, int col, GList *list)
@@ -277,7 +270,8 @@ int maze_solve(struct Maze *maze)
 					  cell_distance(n_cell, maze->end_cell);
 
 			// Lookup in open for same cell with a lower value
-			if (! cell_list_lookup_lower_value(n_cell, open)) {
+			if (!g_list_find_custom(open, n_cell,
+					  (GCompareFunc)cell_cmp_lower_value)) {
 				open = g_list_insert_sorted(open, n_cell,
 					      (GCompareFunc)cell_cmp_heuristic);
 
