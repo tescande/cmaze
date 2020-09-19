@@ -11,7 +11,7 @@
 
 static void usage(char *argv0)
 {
-	fprintf(stderr, "Usage: %s [-h] [-r ROWS] [-c COLS] [-C] [-a]\n",
+	fprintf(stderr, "Usage: %s [-h] [-r ROWS] [-c COLS] [-C] [-a] [-s]\n",
 		basename(argv0));
 	fprintf(stderr, "optional arguments:\n");
 	fprintf(stderr, "  -h        show this help message and exit\n");
@@ -19,6 +19,7 @@ static void usage(char *argv0)
 	fprintf(stderr, "  -c COLS   Maze columns\n");
 	fprintf(stderr, "  -d        Produce a more complex maze\n");
 	fprintf(stderr, "  -a        Slow down solver execution to display a nice animation\n");
+	fprintf(stderr, "  -s VALUE  Random seed value\n");
 }
 
 int main(int argc, char **argv)
@@ -29,9 +30,10 @@ int main(int argc, char **argv)
 	int num_cols = 121;
 	bool difficult = false;
 	bool animate = false;
+	int seed = 0;
 	struct Maze *maze;
 
-	while ((opt = getopt(argc, argv, "r:c:dah")) != -1) {
+	while ((opt = getopt(argc, argv, "r:c:das:h")) != -1) {
 		switch (opt) {
 		case 'r':
 		   num_rows = atoi(optarg);
@@ -45,13 +47,18 @@ int main(int argc, char **argv)
 		case 'a':
 		   animate = true;
 		   break;
+		case 's':
+		   seed = atoi(optarg);
+		   break;
 		default: /* '?' */
 		   usage(argv[0]);
 		   return -1;
 		}
 	}
 
-	srand(time(NULL));
+	if (!seed)
+		seed = time(NULL);
+	srand(seed);
 
 	maze = maze_alloc();
 	if (!maze) {
