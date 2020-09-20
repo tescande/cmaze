@@ -180,6 +180,7 @@ int maze_solve(struct Maze *maze)
 	GList *closed = NULL;
 	GList *elem;
 	int i;
+	int err = 0;
 	struct timeval start, end;
 	struct Cell *board_cell;
 
@@ -194,8 +195,10 @@ int maze_solve(struct Maze *maze)
 	open = g_list_append(open, cell);
 
 	while (open != NULL) {
-		if (maze->solver_cancel)
+		if (maze->solver_cancel) {
+			err = -EINTR;
 			goto exit;
+		}
 
 		if (maze->animate)
 			usleep(100);
@@ -277,7 +280,7 @@ exit:
 
 	maze->solver_running = false;
 
-	return 0;
+	return err;
 }
 
 static void maze_solve_thread_join(struct Maze *maze)
