@@ -54,7 +54,7 @@ static int cell_is_wall(struct Maze *maze, int row, int col)
 	if (cell)
 		return (cell->value == 0);
 
-	return 0;
+	return 1;
 }
 
 static int cell_cmp(struct Cell *c1, struct Cell *c2)
