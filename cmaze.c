@@ -108,10 +108,8 @@ static gint cell_cmp_lower_value(struct Cell *c1, struct Cell *c2)
 static struct Cell *maze_get_cell(struct Maze *maze, int row, int col)
 {
 	if (row < 0 || row >= maze->num_rows ||
-	    col < 0 || col >= maze->num_cols) {
-		printf("Cannot get cell(%i, %i)\n", row, col);
+	    col < 0 || col >= maze->num_cols)
 		return NULL;
-	}
 
 	return &maze->board[row * maze->num_cols + col];
 }
