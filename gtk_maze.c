@@ -16,6 +16,7 @@ struct MazeGui {
 	GtkWidget *new_button;
 	GtkWidget *solve_button;
 	GtkToggleButton *difficult_check;
+	GtkComboBoxText *algo_combo;
 
 	int cell_width;
 	int cell_height;
@@ -191,11 +192,15 @@ void maze_solver_cb(int reason, struct MazeGui *gui)
 void on_solve_clicked(GtkButton *button, struct MazeGui *gui)
 {
 	struct Maze *maze = gui->maze;
+	SolverAlgorithm algo;
 
 	if (maze_solver_running(maze)) {
 		maze_solve_thread_cancel(maze);
 		return;
 	}
+
+	algo = gtk_combo_box_get_active(GTK_COMBO_BOX(gui->algo_combo));
+	maze_set_solver_algorithm(maze, algo);
 
 	gtk_widget_set_sensitive(gui->new_button, false);
 	gtk_button_set_label(GTK_BUTTON(gui->solve_button), "Cancel");
@@ -299,6 +304,7 @@ static void gtk_app_activate(GtkApplication *app, gpointer user_data)
 	GtkToggleButton *check;
 	GtkWidget *button;
 	GtkWidget *label;
+	GtkComboBoxText *combo;
 
 	cairo_surface_alloc(gui);
 
@@ -372,13 +378,27 @@ static void gtk_app_activate(GtkApplication *app, gpointer user_data)
 	gtk_grid_attach_next_to(GTK_GRID(grid), separator, button,
 				GTK_POS_BOTTOM, 2, 1);
 
+	label = gtk_label_new("Solver algorithm:");
+	gtk_grid_attach_next_to(GTK_GRID(grid), label, separator,
+				GTK_POS_BOTTOM, 1, 1);
+
+	combo = GTK_COMBO_BOX_TEXT(gtk_combo_box_text_new());
+	gui->algo_combo = combo;
+	gtk_combo_box_text_insert_text(combo, SOLVER_A_STAR, "A Star");
+	gtk_combo_box_text_insert_text(combo, SOLVER_LEFT_HAND_MAN, "Left hand man");
+	gtk_combo_box_text_insert_text(combo, SOLVER_RIGHT_HAND_MAN, "Right hand man");
+	gtk_combo_box_set_active(GTK_COMBO_BOX(combo),
+				 maze_get_solver_algorithm(maze));
+	gtk_grid_attach_next_to(GTK_GRID(grid), GTK_WIDGET(combo), label,
+				GTK_POS_BOTTOM, 2, 1);
+
 	check = GTK_TOGGLE_BUTTON(gtk_check_button_new_with_label("Slow animation"));
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check),
 				     maze_get_animate(maze));
 	g_signal_connect(G_OBJECT(check), "toggled",
 			 G_CALLBACK(on_animate_toggled), gui);
-	gtk_grid_attach_next_to(GTK_GRID(grid), GTK_WIDGET(check), separator,
-				GTK_POS_BOTTOM, 2, 1);
+	gtk_grid_attach_next_to(GTK_GRID(grid), GTK_WIDGET(check),
+				GTK_WIDGET(combo), GTK_POS_BOTTOM, 2, 1);
 
 	button = gtk_button_new_with_label("Solve");
 	gui->solve_button = button;
