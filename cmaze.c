@@ -466,7 +466,7 @@ int maze_solve_thread(struct Maze *maze, MazeSolverFunc cb, void *userdata)
 	maze->solver_thread = g_thread_new("solver",
 			      (GThreadFunc)maze_solve, maze);
 
-	g_timeout_add(100, (GSourceFunc)maze_solve_monitor, maze);
+	g_timeout_add(40, (GSourceFunc)maze_solve_monitor, maze);
 
 	return 0;
 }
