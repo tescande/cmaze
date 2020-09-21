@@ -284,6 +284,11 @@ static void on_insert_text(GtkEditable *editable, char *new_text,
 	}
 }
 
+static void on_scale_changed(GtkRange *range, struct MazeGui *gui)
+{
+	maze_set_anim_speed(gui->maze, (uint)gtk_range_get_value(range));
+}
+
 static void on_destroy(GtkWindow *win, struct MazeGui *gui)
 {
 	cairo_surface_free(gui);
@@ -306,6 +311,7 @@ static void gtk_app_activate(GtkApplication *app, gpointer user_data)
 	GtkWidget *button;
 	GtkWidget *label;
 	GtkComboBoxText *combo;
+	GtkWidget *scale;
 
 	cairo_surface_alloc(gui);
 
@@ -393,19 +399,24 @@ static void gtk_app_activate(GtkApplication *app, gpointer user_data)
 	gtk_grid_attach_next_to(GTK_GRID(grid), GTK_WIDGET(combo), label,
 				GTK_POS_BOTTOM, 2, 1);
 
-	check = GTK_TOGGLE_BUTTON(gtk_check_button_new_with_label("Slow animation"));
-	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check),
-				     (maze_get_anim_speed(maze) < 100));
-	g_signal_connect(G_OBJECT(check), "toggled",
-			 G_CALLBACK(on_animate_toggled), gui);
-	gtk_grid_attach_next_to(GTK_GRID(grid), GTK_WIDGET(check),
-				GTK_WIDGET(combo), GTK_POS_BOTTOM, 2, 1);
+	label = gtk_label_new("Animation speed:");
+	gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+	gtk_grid_attach_next_to(GTK_GRID(grid), label, GTK_WIDGET(combo),
+				GTK_POS_BOTTOM, 2, 1);
+
+	scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
+	gtk_scale_set_draw_value(GTK_SCALE(scale), false);
+	gtk_range_set_value(GTK_RANGE(scale), maze_get_anim_speed(maze));
+	g_signal_connect(G_OBJECT(scale), "value-changed",
+			 G_CALLBACK(on_scale_changed), gui);
+	gtk_grid_attach_next_to(GTK_GRID(grid), scale, label,
+				GTK_POS_BOTTOM, 2, 1);
 
 	button = gtk_button_new_with_label("Solve");
 	gui->solve_button = button;
 	g_signal_connect(G_OBJECT(button), "clicked",
 			 G_CALLBACK(on_solve_clicked), gui);
-	gtk_grid_attach_next_to(GTK_GRID(grid), button, GTK_WIDGET(check),
+	gtk_grid_attach_next_to(GTK_GRID(grid), button, GTK_WIDGET(scale),
 				GTK_POS_BOTTOM, 2, 1);
 
 	label = gtk_label_new("");
