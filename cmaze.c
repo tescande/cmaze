@@ -289,6 +289,8 @@ exit:
 #define ORIENTATION_SOUTH 2
 #define ORIENTATION_WEST  3
 
+#define HEAD_QUEUE_LENGTH 50
+
 int maze_solve_always_turn(struct Maze *maze)
 {
 	int left_neighbours[4][2] = { { 0, -1 }, { -1, 0 }, { 0, 1 }, { 1, 0 } };
@@ -303,10 +305,13 @@ int maze_solve_always_turn(struct Maze *maze)
 	int err = 0;
 	int value;
 	int low_value;
+	GQueue *head_cells;
 
 	neighbours = (maze->solver_algorithm == SOLVER_ALWAYS_TURN_LEFT) ?
 			(int *)left_neighbours :
 			(int *)right_neighbours;
+
+	head_cells = g_queue_new();
 
 	cell = maze->start_cell;
 	orientation = ORIENTATION_EAST;
@@ -322,8 +327,15 @@ int maze_solve_always_turn(struct Maze *maze)
 		if (maze->animate)
 			usleep(300);
 
-		cell->color = LIGHTGRAY;
+		cell->color = DARKGRAY;
 		cell->value = value++;
+
+		g_queue_push_tail(head_cells, cell);
+		if (g_queue_get_length(head_cells) > HEAD_QUEUE_LENGTH) {
+			n_cell = g_queue_pop_head(head_cells);
+			if (g_queue_find(head_cells, n_cell) == NULL)
+				n_cell->color = LIGHTGRAY;
+		}
 
 		row = cell->row;
 		col = cell->col;
@@ -345,6 +357,10 @@ int maze_solve_always_turn(struct Maze *maze)
 	/* Last cell */
 	cell->value = value++;
 	maze->path_len = 1;
+
+	/* Reset color for the head cells */
+	while ((n_cell = g_queue_pop_head(head_cells)) != NULL)
+		n_cell->color = LIGHTGRAY;
 
 	// Light up the shortest path
 	while (cell != maze->start_cell) {
@@ -383,6 +399,8 @@ int maze_solve_always_turn(struct Maze *maze)
 	maze->path_len++;
 
 exit:
+	g_queue_free(head_cells);
+
 	return err;
 }
 
