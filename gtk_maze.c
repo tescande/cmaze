@@ -211,7 +211,8 @@ void on_solve_clicked(GtkButton *button, struct MazeGui *gui)
 
 void on_animate_toggled(GtkToggleButton *button, struct MazeGui *gui)
 {
-	maze_set_animate(gui->maze, gtk_toggle_button_get_active(button));
+	maze_set_anim_speed(gui->maze,
+			    gtk_toggle_button_get_active(button) ? 50 : 100);
 }
 
 void on_draw(GtkDrawingArea *da, cairo_t *cr, struct MazeGui *gui)
@@ -394,7 +395,7 @@ static void gtk_app_activate(GtkApplication *app, gpointer user_data)
 
 	check = GTK_TOGGLE_BUTTON(gtk_check_button_new_with_label("Slow animation"));
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check),
-				     maze_get_animate(maze));
+				     (maze_get_anim_speed(maze) < 100));
 	g_signal_connect(G_OBJECT(check), "toggled",
 			 G_CALLBACK(on_animate_toggled), gui);
 	gtk_grid_attach_next_to(GTK_GRID(grid), GTK_WIDGET(check),

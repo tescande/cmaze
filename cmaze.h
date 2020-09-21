@@ -49,8 +49,8 @@ bool maze_solver_running(struct Maze *maze);
 int maze_get_path_length(struct Maze *maze);
 double maze_get_solve_time(struct Maze *maze);
 
-void maze_set_animate(struct Maze *maze, bool animate);
-bool maze_get_animate(struct Maze *maze);
+void maze_set_anim_speed(struct Maze *maze, uint speed);
+uint maze_get_anim_speed(struct Maze *maze);
 
 int maze_get_num_rows(struct Maze *maze);
 int maze_get_num_cols(struct Maze *maze);

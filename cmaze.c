@@ -29,7 +29,7 @@ struct Maze {
 	struct Cell *board;
 
 	bool difficult;
-	bool animate;
+	uint anim_speed;
 
 	bool solver_running;
 	bool solver_cancel;
@@ -120,14 +120,14 @@ bool maze_solver_running(struct Maze *maze)
 	return maze->solver_running;
 }
 
-void maze_set_animate(struct Maze *maze, bool animate)
+void maze_set_anim_speed(struct Maze *maze, uint speed)
 {
-	maze->animate = animate;
+	maze->anim_speed = (speed < 100) ? speed : 100;
 }
 
-bool maze_get_animate(struct Maze *maze)
+uint maze_get_anim_speed(struct Maze *maze)
 {
-	return maze->animate;
+	return maze->anim_speed;
 }
 
 int maze_get_num_rows(struct Maze *maze)
@@ -206,8 +206,8 @@ int maze_solve_a_star(struct Maze *maze)
 			goto exit;
 		}
 
-		if (maze->animate)
-			usleep(100);
+		if (maze->anim_speed < 100)
+			usleep(125 * (100 - maze->anim_speed));
 
 		elem = g_list_first(open);
 		cell = (struct Cell *)elem->data;
@@ -324,8 +324,8 @@ int maze_solve_always_turn(struct Maze *maze)
 			goto exit;
 		}
 
-		if (maze->animate)
-			usleep(300);
+		if (maze->anim_speed < 100)
+			usleep(125 * (100 - maze->anim_speed));
 
 		cell->color = DARKGRAY;
 		cell->value = value++;
