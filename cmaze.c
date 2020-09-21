@@ -289,7 +289,7 @@ exit:
 #define ORIENTATION_SOUTH 2
 #define ORIENTATION_WEST  3
 
-int maze_solve_hand_man(struct Maze *maze)
+int maze_solve_always_turn(struct Maze *maze)
 {
 	int left_neighbours[4][2] = { { 0, -1 }, { -1, 0 }, { 0, 1 }, { 1, 0 } };
 	int right_neighbours[4][2] = { { 0, 1 },  { -1, 0 }, { 0, -1 }, { 1, 0 } };
@@ -304,7 +304,7 @@ int maze_solve_hand_man(struct Maze *maze)
 	int value;
 	int low_value;
 
-	neighbours = (maze->solver_algorithm == SOLVER_LEFT_HAND_MAN) ?
+	neighbours = (maze->solver_algorithm == SOLVER_ALWAYS_TURN_LEFT) ?
 			(int *)left_neighbours :
 			(int *)right_neighbours;
 
@@ -432,9 +432,9 @@ int maze_solve(struct Maze *maze)
 	case SOLVER_A_STAR:
 		solver_func = maze_solve_a_star;
 		break;
-	case SOLVER_LEFT_HAND_MAN:
-	case SOLVER_RIGHT_HAND_MAN:
-		solver_func = maze_solve_hand_man;
+	case SOLVER_ALWAYS_TURN_LEFT:
+	case SOLVER_ALWAYS_TURN_RIGHT:
+		solver_func = maze_solve_always_turn;
 		break;
 	default:
 		fprintf(stderr, "Invalid solver enum %d\n",

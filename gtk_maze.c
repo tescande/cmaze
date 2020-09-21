@@ -385,8 +385,8 @@ static void gtk_app_activate(GtkApplication *app, gpointer user_data)
 	combo = GTK_COMBO_BOX_TEXT(gtk_combo_box_text_new());
 	gui->algo_combo = combo;
 	gtk_combo_box_text_insert_text(combo, SOLVER_A_STAR, "A Star");
-	gtk_combo_box_text_insert_text(combo, SOLVER_LEFT_HAND_MAN, "Left hand man");
-	gtk_combo_box_text_insert_text(combo, SOLVER_RIGHT_HAND_MAN, "Right hand man");
+	gtk_combo_box_text_insert_text(combo, SOLVER_ALWAYS_TURN_LEFT, "Always Turn Left");
+	gtk_combo_box_text_insert_text(combo, SOLVER_ALWAYS_TURN_RIGHT, "Always Turn Right");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(combo),
 				 maze_get_solver_algorithm(maze));
 	gtk_grid_attach_next_to(GTK_GRID(grid), GTK_WIDGET(combo), label,
