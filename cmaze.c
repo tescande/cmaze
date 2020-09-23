@@ -1,5 +1,4 @@
 /* SPDX-License-Identifier: MIT */
-#include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -197,7 +196,7 @@ static int maze_solve_a_star(struct Maze *maze)
 
 	while (open != NULL) {
 		if (maze->solver_cancel) {
-			err = -EINTR;
+			err = -1;
 			goto exit;
 		}
 
@@ -315,7 +314,7 @@ static int maze_solve_always_turn(struct Maze *maze)
 
 	while (cell != maze->end_cell) {
 		if (maze->solver_cancel) {
-			err = -EINTR;
+			err = -1;
 			goto exit;
 		}
 
@@ -360,7 +359,7 @@ static int maze_solve_always_turn(struct Maze *maze)
 	// Light up the shortest path
 	while (cell != maze->start_cell) {
 		if (maze->solver_cancel) {
-			err = -EINTR;
+			err = -1;
 			goto exit;
 		}
 
@@ -454,7 +453,7 @@ int maze_solve(struct Maze *maze)
 	default:
 		g_fprintf(stderr, "Invalid solver enum %d\n",
 			  maze->solver_algorithm);
-		return -EINVAL;
+		return -1;
 	}
 
 	maze_clear_board(maze);
@@ -530,7 +529,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 	int walls[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
 
 	if (maze->solver_running)
-		return -EINPROGRESS;
+		return -1;
 
 	if (num_rows < MAZE_MIN_ROWS)
 		num_rows = MAZE_MIN_ROWS;
@@ -578,7 +577,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 	col = (random() % (maze->num_cols - 2)) / 2 * 2 + 1;
 	cell = maze_get_cell(maze, row, col);
 	if (!cell || cell_is_wall(maze, row, col))
-		return -EINVAL;
+		return -1;
 
 	cell->value = 2;
 	stack = g_list_prepend(stack, cell);
@@ -606,7 +605,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 
 			n_cell = maze_get_cell(maze, n_row, n_col);
 			if (!n_cell)
-				return -EINVAL;
+				return -1;
 
 			if (n_cell->value == 2)
 				continue;
