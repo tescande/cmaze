@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: MIT */
 #include <errno.h>
-#include <libgen.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
@@ -10,7 +9,7 @@
 static void usage(char *argv0)
 {
 	g_fprintf(stderr, "Usage: %s [-h] [-r ROWS] [-c COLS] [-C] [-a] [-s]\n",
-		  basename(argv0));
+		  g_path_get_basename(argv0));
 	g_fprintf(stderr, "optional arguments:\n");
 	g_fprintf(stderr, "  -h        show this help message and exit\n");
 	g_fprintf(stderr, "  -r ROWS   Maze rows\n");
