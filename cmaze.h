@@ -46,7 +46,7 @@ void maze_solve_thread_cancel(struct Maze *maze);
 
 gboolean maze_solver_running(struct Maze *maze);
 int maze_get_path_length(struct Maze *maze);
-double maze_get_solve_time(struct Maze *maze);
+float maze_get_solve_time(struct Maze *maze);
 
 void maze_set_anim_speed(struct Maze *maze, uint speed);
 uint maze_get_anim_speed(struct Maze *maze);

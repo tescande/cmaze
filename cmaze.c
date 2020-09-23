@@ -145,9 +145,9 @@ int maze_get_path_length(struct Maze *maze)
 	return maze->path_len;
 }
 
-double maze_get_solve_time(struct Maze *maze)
+float maze_get_solve_time(struct Maze *maze)
 {
-	return (double)maze->solve_time / G_USEC_PER_SEC;
+	return (float)maze->solve_time / G_USEC_PER_SEC;
 }
 
 SolverAlgorithm maze_get_solver_algorithm(struct Maze *maze)

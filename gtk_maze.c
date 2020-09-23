@@ -180,7 +180,7 @@ static void maze_solver_cb(int reason, struct MazeGui *gui)
 		gtk_button_set_label(GTK_BUTTON(gui->solve_button), "Solve");
 
 		if (reason == SOLVER_CB_REASON_SOLVED)
-			label_set_text(gui->info_label, "Length: %d\nTime: %.3gs",
+			label_set_text(gui->info_label, "Length: %d\nTime: %.03fs",
 				       maze_get_path_length(maze),
 				       maze_get_solve_time(maze));
 	}
