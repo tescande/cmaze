@@ -1,5 +1,4 @@
 /* SPDX-License-Identifier: MIT */
-#include <ctype.h>
 #include <stdarg.h>
 
 #include <gtk/gtk.h>
@@ -276,7 +275,7 @@ static void on_insert_text(GtkEditable *editable, char *new_text,
 	int i = 0;
 
 	while (new_text[i]) {
-		if (!isdigit(new_text[i++])) {
+		if (!g_ascii_isdigit(new_text[i++])) {
 			g_signal_stop_emission_by_name(G_OBJECT(editable),
 						       "insert-text");
 			return;
