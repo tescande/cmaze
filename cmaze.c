@@ -250,7 +250,7 @@ static int maze_solve_a_star(struct Maze *maze)
 			n_cell->heuristic = n_cell->value +
 					  cell_distance(n_cell, maze->end_cell);
 
-			// Lookup in open for same cell with a lower value
+			/* Lookup in open for same cell with a lower value */
 			if (!g_list_find_custom(open, n_cell,
 					  (GCompareFunc)cell_cmp_lower_value)) {
 				open = g_list_insert_sorted(open, n_cell,
@@ -351,7 +351,7 @@ static int maze_solve_always_turn(struct Maze *maze)
 	while ((n_cell = g_queue_pop_head(head_cells)) != NULL)
 		n_cell->color = LIGHTGRAY;
 
-	// Light up the shortest path
+	/* Light up the shortest path */
 	while (cell != maze->start_cell) {
 		if (maze->solver_cancel) {
 			err = -1;
@@ -610,7 +610,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 			n_cell->value = 2;
 			stack = g_list_prepend(stack, n_cell);
 
-			// Remove wall between cells
+			/* Remove wall between cells */
 			w = walls[(i + r) % 4];
 			w_cell = maze_get_cell(maze, row + w[0], col + w[1]);
 			w_cell->value = 2;
@@ -646,9 +646,10 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 				r += 1;
 			if (cell_is_wall(maze, row + 1, col))
 				r += 1;
-			// 1 wall up or down means we're on a
-			// wall end or at the top of a T. We need
-			// to choose another wall
+			/*
+			 * Only 1 wall up or down means we're on a wall end or
+			 * at the top of a T. Try with another wall.
+			 */
 			if (r == 1)
 				continue;
 
@@ -657,12 +658,15 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 			if (cell_is_wall(maze, row, col + 1))
 				r += 1;
 
-			// We're surounded by 2 walls verticaly
-			// or horizontaly. It's a match
+			/*
+			 * We're surounded by 2 walls verticaly or horizontaly.
+			 * It's a match.
+			 */
 			if (r == 2)
 				break;
 		}
 
+		/* Remove that wall */
 		cell->value = 2;
 		cell->color = WHITE;
 	}
