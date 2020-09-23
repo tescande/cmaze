@@ -2,27 +2,12 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "cmaze.h"
-
-static void usage(char *argv0)
-{
-	g_fprintf(stderr, "Usage: %s [-h] [-r ROWS] [-c COLS] [-C] [-a] [-s]\n",
-		  g_path_get_basename(argv0));
-	g_fprintf(stderr, "optional arguments:\n");
-	g_fprintf(stderr, "  -h        show this help message and exit\n");
-	g_fprintf(stderr, "  -r ROWS   Maze rows\n");
-	g_fprintf(stderr, "  -c COLS   Maze columns\n");
-	g_fprintf(stderr, "  -d        Produce a more complex maze\n");
-	g_fprintf(stderr, "  -a SPEED  Specify the animation speed (in percent)\n");
-	g_fprintf(stderr, "  -s VALUE  Random seed value\n");
-}
 
 int main(int argc, char **argv)
 {
 	int err = 0;
-	int opt;
 	int num_rows = 121;
 	int num_cols = 121;
 	gboolean difficult = FALSE;
@@ -30,27 +15,27 @@ int main(int argc, char **argv)
 	int seed = 0;
 	struct Maze *maze;
 
-	while ((opt = getopt(argc, argv, "r:c:da:s:h")) != -1) {
-		switch (opt) {
-		case 'r':
-		   num_rows = atoi(optarg);
-		   break;
-		case 'c':
-		   num_cols = atoi(optarg);
-		   break;
-		case 'd':
-		   difficult = TRUE;
-		   break;
-		case 'a':
-		   anim_speed = (uint)atoi(optarg);
-		   break;
-		case 's':
-		   seed = atoi(optarg);
-		   break;
-		default: /* '?' */
-		   usage(argv[0]);
-		   return -1;
-		}
+	GError *error = NULL;
+	GOptionContext *context;
+	GOptionEntry entries[] = {
+		{ "num-rows",   'r', 0, G_OPTION_ARG_INT, &num_rows,
+		  "Number of rows", "ROWS" },
+		{ "num-cols",   'c', 0, G_OPTION_ARG_INT, &num_cols,
+		  "Number of columns", "COLS" },
+		{ "difficult",  'd', 0, G_OPTION_ARG_NONE, &difficult,
+		  "Produce a more complex maze", NULL },
+		{ "anim-speed", 'a', 0, G_OPTION_ARG_INT, &anim_speed,
+		  "Specify the animation speed (in percent)", "VAL" },
+		{ "rand-seed",  's', 0, G_OPTION_ARG_INT, &seed,
+		  "Random seed value", "VAL" },
+		{ NULL }
+	};
+
+	context = g_option_context_new("- Maze generator and solver");
+	g_option_context_add_main_entries(context, entries, NULL);
+	if (!g_option_context_parse(context, &argc, &argv, &error)) {
+		g_fprintf(stderr, "option parsing failed: %s\n", error->message);
+		return -1;
 	}
 
 	if (!seed)
