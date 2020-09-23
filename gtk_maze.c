@@ -209,12 +209,6 @@ void on_solve_clicked(GtkButton *button, struct MazeGui *gui)
 	maze_solve_thread(maze, (MazeSolverFunc)maze_solver_cb, gui);
 }
 
-void on_animate_toggled(GtkToggleButton *button, struct MazeGui *gui)
-{
-	maze_set_anim_speed(gui->maze,
-			    gtk_toggle_button_get_active(button) ? 50 : 100);
-}
-
 void on_draw(GtkDrawingArea *da, cairo_t *cr, struct MazeGui *gui)
 {
 	GtkAllocation da_rect;
