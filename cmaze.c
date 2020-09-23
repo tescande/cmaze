@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 #include <errno.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
@@ -274,7 +273,7 @@ static int maze_solve_a_star(struct Maze *maze)
 		}
 	}
 
-	printf("No path found!\n");
+	g_fprintf(stderr, "No path found!\n");
 
 exit:
 	g_list_free_full(open, (GDestroyNotify)g_free);
@@ -454,8 +453,8 @@ int maze_solve(struct Maze *maze)
 		solver_func = maze_solve_always_turn;
 		break;
 	default:
-		fprintf(stderr, "Invalid solver enum %d\n",
-			maze->solver_algorithm);
+		g_fprintf(stderr, "Invalid solver enum %d\n",
+			  maze->solver_algorithm);
 		return -EINVAL;
 	}
 
@@ -511,12 +510,12 @@ void maze_print_board(struct Maze *maze)
 			cell = &maze->board[row * maze->num_cols + col];
 
 			if (cell->is_path)
-				printf("O");
+				g_printf("O");
 			else
-				printf("%c", (cell->value) ? ' ' : 'X');
+				g_printf("%c", (cell->value) ? ' ' : 'X');
 		}
 
-		printf("\n");
+		g_printf("\n");
 	}
 }
 

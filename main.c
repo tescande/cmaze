@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 #include <errno.h>
 #include <libgen.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
@@ -10,15 +9,15 @@
 
 static void usage(char *argv0)
 {
-	fprintf(stderr, "Usage: %s [-h] [-r ROWS] [-c COLS] [-C] [-a] [-s]\n",
-		basename(argv0));
-	fprintf(stderr, "optional arguments:\n");
-	fprintf(stderr, "  -h        show this help message and exit\n");
-	fprintf(stderr, "  -r ROWS   Maze rows\n");
-	fprintf(stderr, "  -c COLS   Maze columns\n");
-	fprintf(stderr, "  -d        Produce a more complex maze\n");
-	fprintf(stderr, "  -a SPEED  Specify the animation speed (in percent)\n");
-	fprintf(stderr, "  -s VALUE  Random seed value\n");
+	g_fprintf(stderr, "Usage: %s [-h] [-r ROWS] [-c COLS] [-C] [-a] [-s]\n",
+		  basename(argv0));
+	g_fprintf(stderr, "optional arguments:\n");
+	g_fprintf(stderr, "  -h        show this help message and exit\n");
+	g_fprintf(stderr, "  -r ROWS   Maze rows\n");
+	g_fprintf(stderr, "  -c COLS   Maze columns\n");
+	g_fprintf(stderr, "  -d        Produce a more complex maze\n");
+	g_fprintf(stderr, "  -a SPEED  Specify the animation speed (in percent)\n");
+	g_fprintf(stderr, "  -s VALUE  Random seed value\n");
 }
 
 int main(int argc, char **argv)
@@ -65,7 +64,7 @@ int main(int argc, char **argv)
 
 	err = maze_create(maze, num_rows, num_cols, difficult);
 	if (err) {
-		printf("create_maze failed\n");
+		g_fprintf(stderr, "create_maze failed\n");
 		goto exit_err;
 	}
 

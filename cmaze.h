@@ -3,6 +3,7 @@
 #define __MAZE_H__
 
 #include <glib.h>
+#include <glib/gprintf.h>
 
 #define MAZE_MIN_ROWS 21
 #define MAZE_MIN_COLS 21

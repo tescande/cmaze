@@ -72,7 +72,7 @@ static void label_set_text(GtkLabel *label, char *format, ...)
 		goto exit_err;
 
 	va_start(ap, format);
-	size = vsnprintf(NULL, 0, format, ap);
+	size = g_vsnprintf(NULL, 0, format, ap);
 	va_end(ap);
 	if (size < 0)
 		goto exit_err;
@@ -81,7 +81,7 @@ static void label_set_text(GtkLabel *label, char *format, ...)
 	buf = g_malloc0(size);
 
 	va_start(ap, format);
-	size = vsnprintf(buf, size, format, ap);
+	size = g_vsnprintf(buf, size, format, ap);
 	va_end(ap);
 	if (size < 0)
 		goto exit_err;
@@ -94,7 +94,7 @@ static void label_set_text(GtkLabel *label, char *format, ...)
 exit_err:
 	g_free(buf);
 
-	fprintf(stderr, "Can't set text label\n");
+	g_fprintf(stderr, "Can't set text label\n");
 }
 
 static int entry_get_number(GtkEntry *entry)
@@ -113,7 +113,7 @@ static void entry_set_number(GtkEntry *entry, int number)
 {
 	char buf[5] = { 0 };
 
-	snprintf(buf, 4, "%d", number);
+	g_snprintf(buf, 4, "%d", number);
 	gtk_entry_set_text(entry, buf);
 }
 
