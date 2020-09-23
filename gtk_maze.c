@@ -285,13 +285,16 @@ static void on_scale_changed(GtkRange *range, struct MazeGui *gui)
 
 static void on_destroy(GtkWindow *win, struct MazeGui *gui)
 {
+	maze_solve_thread_cancel(gui->maze);
+
 	cairo_surface_free(gui);
 	g_object_ref(gui->drawing_area);
+
+	gtk_main_quit();
 }
 
-static void gtk_app_activate(GtkApplication *app, gpointer user_data)
+static void gui_show(struct MazeGui *gui)
 {
-	struct MazeGui *gui = (struct MazeGui *)user_data;
 	struct Maze *maze = gui->maze;
 	GtkWidget *window;
 	GtkWidget *hbox;
@@ -309,7 +312,7 @@ static void gtk_app_activate(GtkApplication *app, gpointer user_data)
 
 	cairo_surface_alloc(gui);
 
-	window = gtk_application_window_new(app);
+	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(window), "CMaze");
 	g_signal_connect(G_OBJECT(window), "destroy",
 			 G_CALLBACK(on_destroy), gui);
@@ -423,21 +426,17 @@ static void gtk_app_activate(GtkApplication *app, gpointer user_data)
 
 int gtk_maze_run(struct Maze *maze)
 {
-	GtkApplication *app;
 	struct MazeGui *gui;
-	int err;
 
 	gui = g_malloc0(sizeof(*gui));
 	gui->maze = maze;
 
-	app = gtk_application_new("org.escande.cmaze", G_APPLICATION_FLAGS_NONE);
-	g_signal_connect(app, "activate", G_CALLBACK(gtk_app_activate), gui);
-	err = g_application_run(G_APPLICATION(app), 0, NULL);
+	gtk_init(0, NULL);
+	gui_show(gui);
 
-	maze_solve_thread_cancel(maze);
+	gtk_main();
 
-	g_object_unref(app);
 	g_free(gui);
 
-	return err;
+	return 0;
 }
