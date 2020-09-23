@@ -6,7 +6,6 @@
 #include <sys/param.h>
 #include <sys/time.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "cmaze.h"
 
@@ -205,7 +204,7 @@ static int maze_solve_a_star(struct Maze *maze)
 		}
 
 		if (maze->anim_speed < 100)
-			usleep(125 * (100 - maze->anim_speed));
+			g_usleep(125 * (100 - maze->anim_speed));
 
 		elem = g_list_first(open);
 		cell = (struct Cell *)elem->data;
@@ -323,7 +322,7 @@ static int maze_solve_always_turn(struct Maze *maze)
 		}
 
 		if (maze->anim_speed < 100)
-			usleep(125 * (100 - maze->anim_speed));
+			g_usleep(125 * (100 - maze->anim_speed));
 
 		cell->color = DARKGRAY;
 		cell->value = value++;
