@@ -694,8 +694,7 @@ void maze_free(struct Maze *maze)
 	if (!maze)
 		return;
 
-	if (maze->board)
-		g_free(maze->board);
+	g_free(maze->board);
 
 	g_free(maze);
 }

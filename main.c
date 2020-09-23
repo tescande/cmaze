@@ -61,13 +61,7 @@ int main(int argc, char **argv)
 	srand(seed);
 
 	maze = maze_alloc();
-	if (!maze) {
-		err = -ENOMEM;
-		goto exit_err;
-	}
-
 	maze_set_solver_algorithm(maze, SOLVER_A_STAR);
-
 	maze_set_anim_speed(maze, anim_speed);
 
 	err = maze_create(maze, num_rows, num_cols, difficult);
@@ -79,8 +73,7 @@ int main(int argc, char **argv)
 	err = gtk_maze_run(maze);
 
 exit_err:
-	if (maze)
-		maze_free(maze);
+	maze_free(maze);
 
 	return err;
 }
