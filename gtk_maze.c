@@ -233,11 +233,17 @@ void on_draw(GtkDrawingArea *da, cairo_t *cr, struct MazeGui *gui)
 	cell_width = gui->cell_width;
 	cell_height = gui->cell_height;
 
+	cairo_set_source_rgba(gui->cr, 1.0, 1.0, 1.0, 1.0);
+	cairo_paint(gui->cr);
+
 	for (row = 0; row < num_rows; row++) {
 		for (col = 0; col < num_cols; col++) {
 			GtkAllocation rect;
 
 			cell_color = maze_get_cell_color(maze, row, col);
+			if (cell_color == WHITE)
+				continue;
+
 			get_gdk_color(cell_color, &color);
 
 			rect.x = col * cell_width;
