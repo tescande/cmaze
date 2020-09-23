@@ -183,7 +183,7 @@ static void maze_clear_board(struct Maze *maze)
 	}
 }
 
-int maze_solve_a_star(struct Maze *maze)
+static int maze_solve_a_star(struct Maze *maze)
 {
 	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
 	struct Cell *cell;
@@ -291,7 +291,7 @@ exit:
 
 #define HEAD_QUEUE_LENGTH 50
 
-int maze_solve_always_turn(struct Maze *maze)
+static int maze_solve_always_turn(struct Maze *maze)
 {
 	int left_neighbours[4][2] = { { 0, -1 }, { -1, 0 }, { 0, 1 }, { 1, 0 } };
 	int right_neighbours[4][2] = { { 0, 1 },  { -1, 0 }, { 0, -1 }, { 1, 0 } };

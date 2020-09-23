@@ -150,7 +150,7 @@ static void cairo_surface_alloc(struct MazeGui *gui)
 	gui->cr = cairo_create(gui->surface);
 }
 
-void on_new_clicked(GtkButton *button, struct MazeGui *gui)
+static void on_new_clicked(GtkButton *button, struct MazeGui *gui)
 {
 	int num_rows;
 	int num_cols;
@@ -171,7 +171,7 @@ void on_new_clicked(GtkButton *button, struct MazeGui *gui)
 	gtk_widget_queue_draw(gui->drawing_area);
 }
 
-void maze_solver_cb(int reason, struct MazeGui *gui)
+static void maze_solver_cb(int reason, struct MazeGui *gui)
 {
 	struct Maze *maze = gui->maze;
 
@@ -189,7 +189,7 @@ void maze_solver_cb(int reason, struct MazeGui *gui)
 	gtk_widget_queue_draw(gui->drawing_area);
 }
 
-void on_solve_clicked(GtkButton *button, struct MazeGui *gui)
+static void on_solve_clicked(GtkButton *button, struct MazeGui *gui)
 {
 	struct Maze *maze = gui->maze;
 	SolverAlgorithm algo;
@@ -209,7 +209,7 @@ void on_solve_clicked(GtkButton *button, struct MazeGui *gui)
 	maze_solve_thread(maze, (MazeSolverFunc)maze_solver_cb, gui);
 }
 
-void on_draw(GtkDrawingArea *da, cairo_t *cr, struct MazeGui *gui)
+static void on_draw(GtkDrawingArea *da, cairo_t *cr, struct MazeGui *gui)
 {
 	GtkAllocation da_rect;
 	int cell_width;
