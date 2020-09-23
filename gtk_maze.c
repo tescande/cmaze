@@ -304,9 +304,9 @@ static void gui_show(struct MazeGui *gui)
 	struct Maze *maze = gui->maze;
 	GtkWidget *window;
 	GtkWidget *hbox;
+	GtkWidget *vbox;
 	GtkWidget *drawing_area;
 	GtkWidget *grid;
-	GtkWidget *separator;
 	GtkWidget *label_rows;
 	GtkWidget *label_cols;
 	GtkEntry *entry;
@@ -315,6 +315,7 @@ static void gui_show(struct MazeGui *gui)
 	GtkWidget *label;
 	GtkComboBoxText *combo;
 	GtkWidget *scale;
+	GtkWidget *frame;
 
 	cairo_surface_alloc(gui);
 
@@ -323,28 +324,36 @@ static void gui_show(struct MazeGui *gui)
 	g_signal_connect(G_OBJECT(window), "destroy",
 			 G_CALLBACK(on_destroy), gui);
 
-	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 3);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
+	gtk_box_set_spacing(GTK_BOX(hbox), 5);
 	gtk_container_add(GTK_CONTAINER(window), hbox);
 
-	grid = gtk_grid_new();
-	gtk_grid_set_row_spacing(GTK_GRID(grid), 6);
-	gtk_grid_set_column_spacing(GTK_GRID(grid), 6);
-	gtk_box_pack_start(GTK_BOX(hbox), grid, false, false, 6);
+	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	gtk_box_set_spacing(GTK_BOX(vbox), 5);
+	gtk_box_pack_start(GTK_BOX(hbox), vbox, false, false, 5);
 
 	drawing_area = gtk_drawing_area_new();
 	gui->drawing_area = g_object_ref(drawing_area);
 	gtk_widget_set_size_request(drawing_area, 500, 500);
-	gtk_box_pack_start(GTK_BOX(hbox), drawing_area, true, true, 6);
+	gtk_box_pack_start(GTK_BOX(hbox), drawing_area, true, true, 0);
 	g_signal_connect(G_OBJECT(drawing_area), "draw",
 			 G_CALLBACK(on_draw), gui);
 
-	separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-	gtk_container_add(GTK_CONTAINER(grid), separator);
+	frame = gtk_frame_new("Maze");
+	gtk_frame_set_label_align(GTK_FRAME(frame), 0.05, 0.5);
+	gtk_box_pack_start(GTK_BOX(vbox), frame, false, false, 0);
+
+	grid = gtk_grid_new();
+	gtk_container_set_border_width(GTK_CONTAINER(grid), 10);
+	gtk_grid_set_column_homogeneous(GTK_GRID(grid), true);
+	gtk_grid_set_row_spacing(GTK_GRID(grid), 5);
+	gtk_grid_set_column_spacing(GTK_GRID(grid), 5);
+	gtk_container_add(GTK_CONTAINER(frame), grid);
 
 	label_rows = gtk_label_new("Rows:");
 	gtk_label_set_xalign(GTK_LABEL(label_rows), 1.0);
-	gtk_grid_attach_next_to(GTK_GRID(grid), label_rows, separator,
-				GTK_POS_BOTTOM, 1, 1);
+	gtk_container_add(GTK_CONTAINER(grid), label_rows);
 
 	entry = GTK_ENTRY(gtk_entry_new());
 	gui->entry_num_rows = entry;
@@ -384,13 +393,14 @@ static void gui_show(struct MazeGui *gui)
 	gtk_grid_attach_next_to(GTK_GRID(grid), button, GTK_WIDGET(check),
 				GTK_POS_BOTTOM, 2, 1);
 
-	separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-	gtk_grid_attach_next_to(GTK_GRID(grid), separator, button,
-				GTK_POS_BOTTOM, 2, 1);
+	frame = gtk_frame_new("Solver Algorithm");
+	gtk_frame_set_label_align(GTK_FRAME(frame), 0.1, 0.5);
+	gtk_box_pack_start(GTK_BOX(vbox), frame, false, false, 3);
 
-	label = gtk_label_new("Solver algorithm:");
-	gtk_grid_attach_next_to(GTK_GRID(grid), label, separator,
-				GTK_POS_BOTTOM, 1, 1);
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_container_set_border_width(GTK_CONTAINER(hbox), 10);
+	gtk_box_set_homogeneous(GTK_BOX(hbox), true);
+	gtk_container_add(GTK_CONTAINER(frame), hbox);
 
 	combo = GTK_COMBO_BOX_TEXT(gtk_combo_box_text_new());
 	gui->algo_combo = combo;
@@ -399,33 +409,32 @@ static void gui_show(struct MazeGui *gui)
 	gtk_combo_box_text_insert_text(combo, SOLVER_ALWAYS_TURN_RIGHT, "Always Turn Right");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(combo),
 				 maze_get_solver_algorithm(maze));
-	gtk_grid_attach_next_to(GTK_GRID(grid), GTK_WIDGET(combo), label,
-				GTK_POS_BOTTOM, 2, 1);
+	gtk_container_add(GTK_CONTAINER(hbox), GTK_WIDGET(combo));
 
-	label = gtk_label_new("Animation speed:");
-	gtk_label_set_xalign(GTK_LABEL(label), 0.0);
-	gtk_grid_attach_next_to(GTK_GRID(grid), label, GTK_WIDGET(combo),
-				GTK_POS_BOTTOM, 2, 1);
+	frame = gtk_frame_new("Animation Speed");
+	gtk_frame_set_label_align(GTK_FRAME(frame), 0.1, 0.5);
+	gtk_box_pack_start(GTK_BOX(vbox), frame, false, false, 3);
+
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_box_set_homogeneous(GTK_BOX(hbox), true);
+	gtk_container_add(GTK_CONTAINER(frame), hbox);
 
 	scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
 	gtk_scale_set_draw_value(GTK_SCALE(scale), false);
 	gtk_range_set_value(GTK_RANGE(scale), maze_get_anim_speed(maze));
 	g_signal_connect(G_OBJECT(scale), "value-changed",
 			 G_CALLBACK(on_scale_changed), gui);
-	gtk_grid_attach_next_to(GTK_GRID(grid), scale, label,
-				GTK_POS_BOTTOM, 2, 1);
+	gtk_container_add(GTK_CONTAINER(hbox), scale);
 
 	button = gtk_button_new_with_label("Solve");
 	gui->solve_button = button;
 	g_signal_connect(G_OBJECT(button), "clicked",
 			 G_CALLBACK(on_solve_clicked), gui);
-	gtk_grid_attach_next_to(GTK_GRID(grid), button, GTK_WIDGET(scale),
-				GTK_POS_BOTTOM, 2, 1);
+	gtk_box_pack_start(GTK_BOX(vbox), button, false, false, 3);
 
 	label = gtk_label_new("");
 	gui->info_label = GTK_LABEL(label);
-	gtk_grid_attach_next_to(GTK_GRID(grid), label, button,
-				GTK_POS_BOTTOM, 2, 1);
+	gtk_box_pack_start(GTK_BOX(vbox), label, false, false, 0);
 
 	gtk_widget_show_all(window);
 }
