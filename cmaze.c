@@ -1,9 +1,4 @@
 /* SPDX-License-Identifier: MIT */
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
 #include "cmaze.h"
 
 struct Cell {

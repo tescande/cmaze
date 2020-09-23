@@ -1,6 +1,4 @@
 /* SPDX-License-Identifier: MIT */
-#include <stdarg.h>
-
 #include <gtk/gtk.h>
 
 #include "cmaze.h"

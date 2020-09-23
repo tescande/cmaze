@@ -1,8 +1,4 @@
 /* SPDX-License-Identifier: MIT */
-#include <errno.h>
-#include <stdlib.h>
-#include <time.h>
-
 #include "cmaze.h"
 
 int main(int argc, char **argv)
