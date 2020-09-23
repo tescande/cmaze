@@ -293,9 +293,6 @@ static void on_destroy(GtkWindow *win, struct MazeGui *gui)
 {
 	maze_solve_thread_cancel(gui->maze);
 
-	cairo_surface_free(gui);
-	g_object_ref(gui->drawing_area);
-
 	gtk_main_quit();
 }
 
@@ -387,7 +384,7 @@ static void gui_show(struct MazeGui *gui)
 				GTK_POS_BOTTOM, 2, 1);
 
 	button = gtk_button_new_with_label("New");
-	gui->new_button = button;
+	gui->new_button = g_object_ref(button);
 	g_signal_connect(G_OBJECT(button), "clicked",
 			 G_CALLBACK(on_new_clicked), gui);
 	gtk_grid_attach_next_to(GTK_GRID(grid), button, GTK_WIDGET(check),
@@ -427,7 +424,7 @@ static void gui_show(struct MazeGui *gui)
 	gtk_container_add(GTK_CONTAINER(hbox), scale);
 
 	button = gtk_button_new_with_label("Solve");
-	gui->solve_button = button;
+	gui->solve_button = g_object_ref(button);
 	g_signal_connect(G_OBJECT(button), "clicked",
 			 G_CALLBACK(on_solve_clicked), gui);
 	gtk_box_pack_start(GTK_BOX(vbox), button, false, false, 3);
@@ -437,6 +434,15 @@ static void gui_show(struct MazeGui *gui)
 	gtk_box_pack_start(GTK_BOX(vbox), label, false, false, 0);
 
 	gtk_widget_show_all(window);
+}
+
+static void gui_cleanup(struct MazeGui *gui)
+{
+	g_object_unref(gui->drawing_area);
+	g_object_unref(gui->new_button);
+	g_object_unref(gui->solve_button);
+
+	cairo_surface_free(gui);
 }
 
 int gtk_maze_run(struct Maze *maze)
@@ -451,6 +457,7 @@ int gtk_maze_run(struct Maze *maze)
 
 	gtk_main();
 
+	gui_cleanup(gui);
 	g_free(gui);
 
 	return 0;
