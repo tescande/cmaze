@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: MIT */
 #include <errno.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +16,7 @@ struct Cell {
 	int col;
 	int value;
 	int heuristic;
-	bool is_path;
+	gboolean is_path;
 	CellColor color;
 
 	struct Cell *parent;
@@ -28,11 +27,11 @@ struct Maze {
 	int num_cols;
 	struct Cell *board;
 
-	bool difficult;
+	gboolean difficult;
 	uint anim_speed;
 
-	bool solver_running;
-	bool solver_cancel;
+	gboolean solver_running;
+	gboolean solver_cancel;
 	GThread *solver_thread;
 	SolverAlgorithm solver_algorithm;
 	MazeSolverFunc solver_cb;
@@ -115,7 +114,7 @@ static struct Cell *maze_get_cell(struct Maze *maze, int row, int col)
 	return &maze->board[row * maze->num_cols + col];
 }
 
-bool maze_solver_running(struct Maze *maze)
+gboolean maze_solver_running(struct Maze *maze)
 {
 	return maze->solver_running;
 }
@@ -140,7 +139,7 @@ int maze_get_num_cols(struct Maze *maze)
 	return maze->num_cols;
 }
 
-bool maze_get_difficult(struct Maze *maze)
+gboolean maze_get_difficult(struct Maze *maze)
 {
 	return maze->difficult;
 }
@@ -177,7 +176,7 @@ static void maze_clear_board(struct Maze *maze)
 			continue;
 
 		cell->value = 1;
-		cell->is_path = false;
+		cell->is_path = FALSE;
 		cell->heuristic = 0;
 		cell->color = WHITE;
 	}
@@ -225,7 +224,7 @@ static int maze_solve_a_star(struct Maze *maze)
 
 			while (cell) {
 				path = maze_get_cell(maze, cell->row, cell->col);
-				path->is_path = true;
+				path->is_path = TRUE;
 				path->color = GREEN;
 				maze->path_len++;
 
@@ -435,7 +434,7 @@ static gboolean maze_solve_monitor(struct Maze *maze)
 
 void maze_solve_thread_cancel(struct Maze *maze)
 {
-	maze->solver_cancel = true;
+	maze->solver_cancel = TRUE;
 
 	maze_solve_thread_join(maze);
 }
@@ -469,15 +468,15 @@ int maze_solve(struct Maze *maze)
 	gettimeofday(&end, NULL);
 	timersub(&end, &start, &maze->solve_time);
 
-	maze->solver_running = false;
+	maze->solver_running = FALSE;
 
 	return result;
 }
 
 int maze_solve_thread(struct Maze *maze, MazeSolverFunc cb, void *userdata)
 {
-	maze->solver_cancel = false;
-	maze->solver_running = true;
+	maze->solver_cancel = FALSE;
+	maze->solver_running = TRUE;
 	maze->solver_cb = cb;
 	maze->solver_cb_userdata = userdata;
 
@@ -521,7 +520,7 @@ void maze_print_board(struct Maze *maze)
 	}
 }
 
-int maze_create(struct Maze *maze, int num_rows, int num_cols, bool difficult)
+int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficult)
 {
 	int row;
 	int col;

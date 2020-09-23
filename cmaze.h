@@ -2,8 +2,6 @@
 #ifndef __MAZE_H__
 #define __MAZE_H__
 
-#include <stdbool.h>
-
 #include <glib.h>
 
 #define MAZE_MIN_ROWS 21
@@ -38,14 +36,14 @@ struct Maze;
 struct Maze *maze_alloc(void);
 void maze_free(struct Maze *maze);
 
-int maze_create(struct Maze *maze, int num_rows, int num_cols, bool difficult);
+int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficult);
 int maze_solve(struct Maze *maze);
 void maze_print_board(struct Maze *maze);
 
 int maze_solve_thread(struct Maze *maze, MazeSolverFunc cb, void *userdata);
 void maze_solve_thread_cancel(struct Maze *maze);
 
-bool maze_solver_running(struct Maze *maze);
+gboolean maze_solver_running(struct Maze *maze);
 int maze_get_path_length(struct Maze *maze);
 double maze_get_solve_time(struct Maze *maze);
 
@@ -55,7 +53,7 @@ uint maze_get_anim_speed(struct Maze *maze);
 int maze_get_num_rows(struct Maze *maze);
 int maze_get_num_cols(struct Maze *maze);
 
-bool maze_get_difficult(struct Maze *maze);
+gboolean maze_get_difficult(struct Maze *maze);
 
 SolverAlgorithm maze_get_solver_algorithm(struct Maze *maze);
 void maze_set_solver_algorithm(struct Maze *maze, SolverAlgorithm algo);

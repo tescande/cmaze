@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 #include <errno.h>
 #include <libgen.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -28,7 +27,7 @@ int main(int argc, char **argv)
 	int opt;
 	int num_rows = 121;
 	int num_cols = 121;
-	bool difficult = false;
+	gboolean difficult = FALSE;
 	uint anim_speed = 100;
 	int seed = 0;
 	struct Maze *maze;
@@ -42,7 +41,7 @@ int main(int argc, char **argv)
 		   num_cols = atoi(optarg);
 		   break;
 		case 'd':
-		   difficult = true;
+		   difficult = TRUE;
 		   break;
 		case 'a':
 		   anim_speed = (uint)atoi(optarg);

@@ -177,7 +177,7 @@ static void maze_solver_cb(int reason, struct MazeGui *gui)
 
 	if (reason == SOLVER_CB_REASON_SOLVED ||
 	    reason == SOLVER_CB_REASON_CANCELED) {
-		gtk_widget_set_sensitive(gui->new_button, true);
+		gtk_widget_set_sensitive(gui->new_button, TRUE);
 		gtk_button_set_label(GTK_BUTTON(gui->solve_button), "Solve");
 
 		if (reason == SOLVER_CB_REASON_SOLVED)
@@ -202,7 +202,7 @@ static void on_solve_clicked(GtkButton *button, struct MazeGui *gui)
 	algo = gtk_combo_box_get_active(GTK_COMBO_BOX(gui->algo_combo));
 	maze_set_solver_algorithm(maze, algo);
 
-	gtk_widget_set_sensitive(gui->new_button, false);
+	gtk_widget_set_sensitive(gui->new_button, FALSE);
 	gtk_button_set_label(GTK_BUTTON(gui->solve_button), "Cancel");
 	label_set_text(gui->info_label, "");
 
@@ -328,22 +328,22 @@ static void gui_show(struct MazeGui *gui)
 
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_box_set_spacing(GTK_BOX(vbox), 5);
-	gtk_box_pack_start(GTK_BOX(hbox), vbox, false, false, 5);
+	gtk_box_pack_start(GTK_BOX(hbox), vbox, FALSE, FALSE, 5);
 
 	drawing_area = gtk_drawing_area_new();
 	gui->drawing_area = g_object_ref(drawing_area);
 	gtk_widget_set_size_request(drawing_area, 500, 500);
-	gtk_box_pack_start(GTK_BOX(hbox), drawing_area, true, true, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), drawing_area, TRUE, TRUE, 0);
 	g_signal_connect(G_OBJECT(drawing_area), "draw",
 			 G_CALLBACK(on_draw), gui);
 
 	frame = gtk_frame_new("Maze");
 	gtk_frame_set_label_align(GTK_FRAME(frame), 0.05, 0.5);
-	gtk_box_pack_start(GTK_BOX(vbox), frame, false, false, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);
 
 	grid = gtk_grid_new();
 	gtk_container_set_border_width(GTK_CONTAINER(grid), 10);
-	gtk_grid_set_column_homogeneous(GTK_GRID(grid), true);
+	gtk_grid_set_column_homogeneous(GTK_GRID(grid), TRUE);
 	gtk_grid_set_row_spacing(GTK_GRID(grid), 5);
 	gtk_grid_set_column_spacing(GTK_GRID(grid), 5);
 	gtk_container_add(GTK_CONTAINER(frame), grid);
@@ -392,11 +392,11 @@ static void gui_show(struct MazeGui *gui)
 
 	frame = gtk_frame_new("Solver Algorithm");
 	gtk_frame_set_label_align(GTK_FRAME(frame), 0.1, 0.5);
-	gtk_box_pack_start(GTK_BOX(vbox), frame, false, false, 3);
+	gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 3);
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(hbox), 10);
-	gtk_box_set_homogeneous(GTK_BOX(hbox), true);
+	gtk_box_set_homogeneous(GTK_BOX(hbox), TRUE);
 	gtk_container_add(GTK_CONTAINER(frame), hbox);
 
 	combo = GTK_COMBO_BOX_TEXT(gtk_combo_box_text_new());
@@ -410,14 +410,14 @@ static void gui_show(struct MazeGui *gui)
 
 	frame = gtk_frame_new("Animation Speed");
 	gtk_frame_set_label_align(GTK_FRAME(frame), 0.1, 0.5);
-	gtk_box_pack_start(GTK_BOX(vbox), frame, false, false, 3);
+	gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 3);
 
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	gtk_box_set_homogeneous(GTK_BOX(hbox), true);
+	gtk_box_set_homogeneous(GTK_BOX(hbox), TRUE);
 	gtk_container_add(GTK_CONTAINER(frame), hbox);
 
 	scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
-	gtk_scale_set_draw_value(GTK_SCALE(scale), false);
+	gtk_scale_set_draw_value(GTK_SCALE(scale), FALSE);
 	gtk_range_set_value(GTK_RANGE(scale), maze_get_anim_speed(maze));
 	g_signal_connect(G_OBJECT(scale), "value-changed",
 			 G_CALLBACK(on_scale_changed), gui);
@@ -427,11 +427,11 @@ static void gui_show(struct MazeGui *gui)
 	gui->solve_button = g_object_ref(button);
 	g_signal_connect(G_OBJECT(button), "clicked",
 			 G_CALLBACK(on_solve_clicked), gui);
-	gtk_box_pack_start(GTK_BOX(vbox), button, false, false, 3);
+	gtk_box_pack_start(GTK_BOX(vbox), button, FALSE, FALSE, 3);
 
 	label = gtk_label_new("");
 	gui->info_label = GTK_LABEL(label);
-	gtk_box_pack_start(GTK_BOX(vbox), label, false, false, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, FALSE, 0);
 
 	gtk_widget_show_all(window);
 }
