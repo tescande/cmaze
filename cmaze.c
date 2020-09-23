@@ -435,10 +435,12 @@ void maze_solve_thread_cancel(struct Maze *maze)
 	maze_solve_thread_join(maze);
 }
 
+typedef int (*SolverFunc)(struct Maze *);
+
 int maze_solve(struct Maze *maze)
 {
 	gint64 start;
-	int (*solver_func)(struct Maze *);
+	SolverFunc solver_func;
 	int result;
 
 	switch (maze->solver_algorithm) {
