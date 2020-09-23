@@ -3,8 +3,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/param.h>
-#include <sys/time.h>
 #include <time.h>
 
 #include "cmaze.h"
@@ -36,7 +34,7 @@ struct Maze {
 	void *solver_cb_userdata;
 
 	int path_len;
-	struct timeval solve_time;
+	gint64 solve_time;
 
 	struct Cell *start_cell;
 	struct Cell *end_cell;
@@ -149,7 +147,7 @@ int maze_get_path_length(struct Maze *maze)
 
 double maze_get_solve_time(struct Maze *maze)
 {
-	return maze->solve_time.tv_sec + (0.000001f * maze->solve_time.tv_usec);
+	return (double)maze->solve_time / G_USEC_PER_SEC;
 }
 
 SolverAlgorithm maze_get_solver_algorithm(struct Maze *maze)
@@ -439,7 +437,7 @@ void maze_solve_thread_cancel(struct Maze *maze)
 
 int maze_solve(struct Maze *maze)
 {
-	struct timeval start, end;
+	gint64 start;
 	int (*solver_func)(struct Maze *);
 	int result;
 
@@ -459,12 +457,11 @@ int maze_solve(struct Maze *maze)
 
 	maze_clear_board(maze);
 
-	gettimeofday(&start, NULL);
+	start = g_get_monotonic_time();
 
 	result = solver_func(maze);
 
-	gettimeofday(&end, NULL);
-	timersub(&end, &start, &maze->solve_time);
+	maze->solve_time = g_get_monotonic_time() - start;
 
 	maze->solver_running = FALSE;
 
