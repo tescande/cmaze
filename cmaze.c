@@ -169,6 +169,7 @@ static void _maze_clear_board(struct Maze *maze)
 		cell->is_path = FALSE;
 		cell->heuristic = 0;
 		cell->color = WHITE;
+		cell->parent = NULL;
 	}
 
 	maze->start_cell->color =
