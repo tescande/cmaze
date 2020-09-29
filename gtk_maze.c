@@ -11,6 +11,7 @@ struct MazeGui {
 	GtkEntry  *entry_num_rows;
 	GtkEntry  *entry_num_cols;
 	GtkWidget *new_button;
+	GtkWidget *clear_button;
 	GtkWidget *solve_button;
 	GtkToggleButton *difficult_check;
 	GtkComboBoxText *algo_combo;
@@ -168,6 +169,13 @@ static void on_new_clicked(GtkButton *button, struct MazeGui *gui)
 	gtk_widget_queue_draw(gui->drawing_area);
 }
 
+static void on_clear_clicked(GtkButton *button, struct MazeGui *gui)
+{
+	maze_clear_board(gui->maze);
+
+	gtk_widget_queue_draw(gui->drawing_area);
+}
+
 static void maze_solver_cb(int reason, struct MazeGui *gui)
 {
 	struct Maze *maze = gui->maze;
@@ -175,6 +183,7 @@ static void maze_solver_cb(int reason, struct MazeGui *gui)
 	if (reason == SOLVER_CB_REASON_SOLVED ||
 	    reason == SOLVER_CB_REASON_CANCELED) {
 		gtk_widget_set_sensitive(gui->new_button, TRUE);
+		gtk_widget_set_sensitive(gui->clear_button, TRUE);
 		gtk_button_set_label(GTK_BUTTON(gui->solve_button), "Solve");
 
 		if (reason == SOLVER_CB_REASON_SOLVED)
@@ -200,6 +209,7 @@ static void on_solve_clicked(GtkButton *button, struct MazeGui *gui)
 	maze_set_solver_algorithm(maze, algo);
 
 	gtk_widget_set_sensitive(gui->new_button, FALSE);
+	gtk_widget_set_sensitive(gui->clear_button, FALSE);
 	gtk_button_set_label(GTK_BUTTON(gui->solve_button), "Cancel");
 	label_set_text(gui->info_label, "");
 
@@ -387,6 +397,13 @@ static void gui_show(struct MazeGui *gui)
 	gtk_grid_attach_next_to(GTK_GRID(grid), button, GTK_WIDGET(check),
 				GTK_POS_BOTTOM, 2, 1);
 
+	button = gtk_button_new_with_label("Clear");
+	gui->clear_button = g_object_ref(button);
+	g_signal_connect(G_OBJECT(button), "clicked",
+			 G_CALLBACK(on_clear_clicked), gui);
+	gtk_grid_attach_next_to(GTK_GRID(grid), button, gui->new_button,
+				GTK_POS_BOTTOM, 2, 1);
+
 	frame = gtk_frame_new("Solver Algorithm");
 	gtk_frame_set_label_align(GTK_FRAME(frame), 0.1, 0.5);
 	gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 3);
@@ -437,6 +454,7 @@ static void gui_cleanup(struct MazeGui *gui)
 {
 	g_object_unref(gui->drawing_area);
 	g_object_unref(gui->new_button);
+	g_object_unref(gui->clear_button);
 	g_object_unref(gui->solve_button);
 
 	cairo_surface_free(gui);
