@@ -170,6 +170,9 @@ static void _maze_clear_board(struct Maze *maze)
 		cell->heuristic = 0;
 		cell->color = WHITE;
 	}
+
+	maze->start_cell->color =
+	maze->end_cell->color = RED;
 }
 
 void maze_clear_board(struct Maze *maze)
