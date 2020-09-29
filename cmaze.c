@@ -172,8 +172,8 @@ static void _maze_clear_board(struct Maze *maze)
 		cell->parent = NULL;
 	}
 
-	maze->start_cell->color =
-	maze->end_cell->color = RED;
+	maze->start_cell->color = RED;
+	maze->end_cell->color = LIGHTBLUE;
 }
 
 void maze_clear_board(struct Maze *maze)
@@ -274,8 +274,8 @@ static int maze_solve_a_star(struct Maze *maze)
 		cell = cell->parent;
 	}
 
-	maze->start_cell->color =
-	maze->end_cell->color = RED;
+	maze->start_cell->color = RED;
+	maze->end_cell->color = LIGHTBLUE;
 
 exit:
 	g_list_free_full(open, (GDestroyNotify)g_free);
@@ -330,8 +330,8 @@ static void maze_color_path(struct Maze *maze)
 		}
 	}
 
-	maze->start_cell->color =
-	maze->end_cell->color = RED;
+	maze->start_cell->color = RED;
+	maze->end_cell->color = LIGHTBLUE;
 }
 
 #define ORIENTATION_NORTH 0
@@ -800,7 +800,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 	maze->start_cell->color = RED;
 	maze->end_cell = maze_get_cell(maze, maze->num_rows - 2, maze->num_cols - 1);
 	maze->end_cell->value = 2;
-	maze->end_cell->color = RED;
+	maze->end_cell->color = LIGHTBLUE;
 
 	if (!difficult)
 		return 0;
