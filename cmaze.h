@@ -30,6 +30,7 @@ typedef enum {
 	SOLVER_ALWAYS_TURN_LEFT,
 	SOLVER_ALWAYS_TURN_RIGHT,
 	SOLVER_DFS,
+	SOLVER_BFS,
 } SolverAlgorithm;
 
 struct Cell;

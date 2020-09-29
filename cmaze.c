@@ -490,6 +490,76 @@ exit:
 	return err;
 }
 
+/**
+ * procedure BFS(G, root) is
+ * let Q be a queue
+ *     label root as discovered
+ *     Q.enqueue(root)
+ *     while Q is not empty do
+ *         v := Q.dequeue()
+ *         if v is the goal then
+ *             return v
+ *         for all edges from v to w in G.adjacentEdges(v) do
+ *             if w is not labeled as discovered then
+ *                 label w as discovered
+ *                 Q.enqueue(w)
+ */
+int maze_solve_bfs(struct Maze *maze)
+{
+	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
+	GQueue *queue = NULL;
+	struct Cell *cell;
+	struct Cell *n_cell;
+	int n_row;
+	int n_col;
+	int *n;
+	int i;
+	int err = 0;
+
+	queue = g_queue_new();
+	maze->start_cell->value = 2;
+	g_queue_push_tail(queue, maze->start_cell);
+
+	while (!g_queue_is_empty(queue)) {
+		if (maze->solver_cancel) {
+			err = -1;
+			goto exit;
+		}
+
+		if (maze->anim_speed < 100)
+			g_usleep(125 * (100 - maze->anim_speed));
+
+		cell = g_queue_pop_head(queue);
+
+		if (cell == maze->end_cell)
+			break;
+
+		cell->color = LIGHTGRAY;
+
+		for (i = 0; i < 4; i++) {
+			n = neighbours[i];
+			n_row = cell->row + n[0];
+			n_col = cell->col + n[1];
+
+			n_cell = maze_get_cell(maze, n_row, n_col);
+
+			if (!n_cell || n_cell->value == 0 || n_cell->value > 1)
+				continue;
+
+			n_cell->value = cell->value + 1;
+			n_cell->color = DARKGRAY;
+			g_queue_push_tail(queue, n_cell);
+		}
+	}
+
+	maze_color_path(maze);
+
+exit:
+	g_queue_free(queue);
+
+	return err;
+}
+
 static void maze_solve_thread_join(struct Maze *maze)
 {
 	if (!maze->solver_thread)
@@ -544,6 +614,9 @@ int maze_solve(struct Maze *maze)
 		break;
 	case SOLVER_DFS:
 		solver_func = maze_solve_dfs;
+		break;
+	case SOLVER_BFS:
+		solver_func = maze_solve_bfs;
 		break;
 	default:
 		g_fprintf(stderr, "Invalid solver enum %d\n",

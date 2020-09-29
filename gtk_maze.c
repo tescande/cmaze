@@ -419,6 +419,7 @@ static void gui_show(struct MazeGui *gui)
 	gtk_combo_box_text_insert_text(combo, SOLVER_ALWAYS_TURN_LEFT, "Always Turn Left");
 	gtk_combo_box_text_insert_text(combo, SOLVER_ALWAYS_TURN_RIGHT, "Always Turn Right");
 	gtk_combo_box_text_insert_text(combo, SOLVER_DFS, "Depth-First Search");
+	gtk_combo_box_text_insert_text(combo, SOLVER_BFS, "Breadth-First Search");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(combo),
 				 maze_get_solver_algorithm(maze));
 	gtk_container_add(GTK_CONTAINER(hbox), GTK_WIDGET(combo));
