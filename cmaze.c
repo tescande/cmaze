@@ -222,7 +222,7 @@ static int maze_solve_a_star(struct Maze *maze)
 		if (!cell_cmp(cell, maze->end_cell)) {
 			struct Cell *path;
 
-			maze->path_len = 1;
+			maze->path_len = 0;
 
 			while (cell) {
 				path = maze_get_cell(maze, cell->row, cell->col);
