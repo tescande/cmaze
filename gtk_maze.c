@@ -47,6 +47,16 @@ static void get_gdk_color(CellColor cell_color, GdkRGBA *color)
 		color->red =
 		color->blue = 0;
 		break;
+	case BLUE:
+		color->red =
+		color->green = 0.0;
+		color->blue = 1.0;
+		break;
+	case LIGHTBLUE:
+		color->red = 0.0;
+		color->green = 1.0;
+		color->blue = 1.0;
+		break;
 	case LIGHTGRAY:
 		color->green =
 		color->red =

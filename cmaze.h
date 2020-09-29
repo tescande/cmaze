@@ -21,6 +21,8 @@ typedef enum {
 	WHITE,
 	RED,
 	GREEN,
+	BLUE,
+	LIGHTBLUE,
 	LIGHTGRAY,
 	DARKGRAY,
 } CellColor;
