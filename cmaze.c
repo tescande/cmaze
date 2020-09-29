@@ -285,6 +285,56 @@ exit:
 	return err;
 }
 
+static void maze_color_path(struct Maze *maze)
+{
+	int neighbours[4][2] = { { 0, -1 }, { -1, 0 }, { 0, 1 }, { 1, 0 } };
+	struct Cell *cell;
+	struct Cell *n_cell;
+	int low_value;
+	int row;
+	int col;
+	int n_row;
+	int n_col;
+	int *n;
+	int i;
+
+	cell = maze->end_cell;
+	maze->path_len = 1;
+
+	/* Light up the shortest path */
+	while (cell != maze->start_cell) {
+		if (maze->solver_cancel)
+			return;
+
+		maze->path_len++;
+		cell->color = GREEN;
+		cell->is_path = TRUE;
+		low_value = cell->value;
+
+		row = cell->row;
+		col = cell->col;
+
+		/* Search for a neighbours with the lowest value */
+		for (i = 0; i < 4; i++) {
+			n = neighbours[i];
+			n_row = row + n[0];
+			n_col = col + n[1];
+
+			n_cell = maze_get_cell(maze, n_row, n_col);
+			if (!n_cell)
+				continue;
+
+			if (n_cell->value > 1 && n_cell->value < low_value) {
+				low_value = n_cell->value;
+				cell = n_cell;
+			}
+		}
+	}
+
+	maze->start_cell->color =
+	maze->end_cell->color = RED;
+}
+
 #define ORIENTATION_NORTH 0
 #define ORIENTATION_EAST  1
 #define ORIENTATION_SOUTH 2
@@ -305,7 +355,6 @@ static int maze_solve_always_turn(struct Maze *maze)
 	int col;
 	int err = 0;
 	int value;
-	int low_value;
 	GQueue *head_cells;
 
 	neighbours = (maze->solver_algorithm == SOLVER_ALWAYS_TURN_LEFT) ?
@@ -357,47 +406,12 @@ static int maze_solve_always_turn(struct Maze *maze)
 
 	/* Last cell */
 	cell->value = value++;
-	maze->path_len = 1;
 
 	/* Reset color for the head cells */
 	while ((n_cell = g_queue_pop_head(head_cells)) != NULL)
 		n_cell->color = LIGHTGRAY;
 
-	/* Light up the shortest path */
-	while (cell != maze->start_cell) {
-		if (maze->solver_cancel) {
-			err = -1;
-			goto exit;
-		}
-
-		maze->path_len++;
-
-		cell->color = GREEN;
-
-		row = cell->row;
-		col = cell->col;
-
-		low_value = cell->value;
-
-		for (i = 0; i < 4; i++) {
-			int *n = right_neighbours[i];
-			int n_row = row + n[0];
-			int n_col = col + n[1];
-
-			n_cell = maze_get_cell(maze, n_row, n_col);
-			if (!n_cell)
-				continue;
-
-			if (n_cell->value > 1 && n_cell->value < low_value) {
-				low_value = n_cell->value;
-				cell = n_cell;
-			}
-		}
-	}
-
-	/* First cell */
-	cell->color = GREEN;
-	maze->path_len++;
+	maze_color_path(maze);
 
 exit:
 	g_queue_free(head_cells);
