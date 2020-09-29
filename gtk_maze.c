@@ -306,6 +306,28 @@ static void on_scale_changed(GtkRange *range, struct MazeGui *gui)
 	maze_set_anim_speed(gui->maze, (uint)gtk_range_get_value(range));
 }
 
+static gboolean on_mouse_clicked(GtkWidget *da, GdkEventButton *event,
+				 struct MazeGui *gui)
+{
+	struct Maze *maze = gui->maze;
+	GtkAllocation rect;
+	int row;
+	int col;
+
+	gtk_widget_get_allocated_size(da, &rect, NULL);
+	row = event->y * maze_get_num_rows(maze) / rect.height;
+	col =  event->x * maze_get_num_cols(maze) / rect.width;
+
+	if ((event->state & GDK_CONTROL_MASK) == GDK_CONTROL_MASK)
+		maze_set_end_cell(maze, row, col);
+	else
+		maze_set_start_cell(maze, row, col);
+
+	gtk_widget_queue_draw(da);
+
+	return TRUE;
+}
+
 static void on_destroy(GtkWindow *win, struct MazeGui *gui)
 {
 	maze_solve_thread_cancel(gui->maze);
@@ -353,6 +375,10 @@ static void gui_show(struct MazeGui *gui)
 	gtk_box_pack_start(GTK_BOX(hbox), drawing_area, TRUE, TRUE, 0);
 	g_signal_connect(G_OBJECT(drawing_area), "draw",
 			 G_CALLBACK(on_draw), gui);
+	gtk_widget_add_events(drawing_area,
+			      GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+	g_signal_connect(G_OBJECT(drawing_area), "button-release-event",
+			 G_CALLBACK(on_mouse_clicked), gui);
 
 	frame = gtk_frame_new("Maze");
 	gtk_frame_set_label_align(GTK_FRAME(frame), 0.05, 0.5);
