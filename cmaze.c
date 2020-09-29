@@ -188,6 +188,7 @@ static int maze_solve_a_star(struct Maze *maze)
 {
 	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
 	struct Cell *cell;
+	struct Cell *path;
 	GList *open = NULL;
 	GList *closed = NULL;
 	GList *elem;
@@ -219,22 +220,8 @@ static int maze_solve_a_star(struct Maze *maze)
 		board_cell = maze_get_cell(maze, cell->row, cell->col);
 		board_cell->color = LIGHTGRAY;
 
-		if (!cell_cmp(cell, maze->end_cell)) {
-			struct Cell *path;
-
-			maze->path_len = 0;
-
-			while (cell) {
-				path = maze_get_cell(maze, cell->row, cell->col);
-				path->is_path = TRUE;
-				path->color = GREEN;
-				maze->path_len++;
-
-				cell = cell->parent;
-			}
-
-			goto exit;
-		}
+		if (!cell_cmp(cell, maze->end_cell))
+			break;
 
 		for (i = 0; i < 4; i++) {
 			int *n = neighbours[i];
@@ -276,7 +263,19 @@ static int maze_solve_a_star(struct Maze *maze)
 		}
 	}
 
-	g_fprintf(stderr, "No path found!\n");
+	maze->path_len = 0;
+
+	while (cell) {
+		path = maze_get_cell(maze, cell->row, cell->col);
+		path->is_path = TRUE;
+		path->color = GREEN;
+		maze->path_len++;
+
+		cell = cell->parent;
+	}
+
+	maze->start_cell->color =
+	maze->end_cell->color = RED;
 
 exit:
 	g_list_free_full(open, (GDestroyNotify)g_free);
