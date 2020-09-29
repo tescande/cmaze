@@ -419,6 +419,78 @@ exit:
 	return err;
 }
 
+/**
+ * procedure DFS_iterative(G, v) is
+ *    let S be a stack
+ *    S.push(v)
+ *    while S is not empty do
+ *        v = S.pop()
+ *        if v is not labeled as discovered then
+ *            label v as discovered
+ *            for all edges from v to w in G.adjacentEdges(v) do
+ *                S.push(w)
+ */
+static int maze_solve_dfs(struct Maze *maze)
+{
+	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
+	GList *stack = NULL;
+	GList *elem;
+	struct Cell *cell;
+	struct Cell *n_cell;
+	int n_row;
+	int n_col;
+	int *n;
+	int i;
+	int err = 0;
+
+	stack = g_list_prepend(stack, maze->start_cell);
+
+	while (stack != NULL) {
+		if (maze->solver_cancel) {
+			err = -1;
+			goto exit;
+		}
+
+		if (maze->anim_speed < 100)
+			g_usleep(125 * (100 - maze->anim_speed));
+
+		elem = g_list_first(stack);
+		cell = elem->data;
+		stack = g_list_delete_link(stack, elem);
+
+		if (cell->value > 1)
+			continue;
+
+		cell->value = cell->parent ? cell->parent->value + 1 : 2;
+		cell->color = DARKGRAY;
+
+		if (cell == maze->end_cell)
+			break;
+
+		for (i = 0; i < 4; i++) {
+			n = neighbours[i];
+			n_row = cell->row + n[0];
+			n_col = cell->col + n[1];
+
+			n_cell = maze_get_cell(maze, n_row, n_col);
+
+			if (!n_cell || n_cell->value == 0)
+				continue;
+
+			n_cell->parent = cell;
+			n_cell->color = LIGHTGRAY;
+			stack = g_list_prepend(stack, n_cell);
+		}
+	}
+
+	maze_color_path(maze);
+
+exit:
+	g_list_free(stack);
+
+	return err;
+}
+
 static void maze_solve_thread_join(struct Maze *maze)
 {
 	if (!maze->solver_thread)
@@ -470,6 +542,9 @@ int maze_solve(struct Maze *maze)
 	case SOLVER_ALWAYS_TURN_LEFT:
 	case SOLVER_ALWAYS_TURN_RIGHT:
 		solver_func = maze_solve_always_turn;
+		break;
+	case SOLVER_DFS:
+		solver_func = maze_solve_dfs;
 		break;
 	default:
 		g_fprintf(stderr, "Invalid solver enum %d\n",
