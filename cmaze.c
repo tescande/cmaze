@@ -154,7 +154,7 @@ void maze_set_solver_algorithm(struct Maze *maze, SolverAlgorithm algo)
 	maze->solver_algorithm = algo;
 }
 
-static void maze_clear_board(struct Maze *maze)
+static void _maze_clear_board(struct Maze *maze)
 {
 	struct Cell *cell;
 	int i;
@@ -170,6 +170,14 @@ static void maze_clear_board(struct Maze *maze)
 		cell->heuristic = 0;
 		cell->color = WHITE;
 	}
+}
+
+void maze_clear_board(struct Maze *maze)
+{
+	if (maze->solver_running)
+		return;
+
+	_maze_clear_board(maze);
 }
 
 static int maze_solve_a_star(struct Maze *maze)
@@ -451,7 +459,7 @@ int maze_solve(struct Maze *maze)
 		return -1;
 	}
 
-	maze_clear_board(maze);
+	_maze_clear_board(maze);
 
 	start = g_get_monotonic_time();
 
