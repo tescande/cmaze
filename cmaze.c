@@ -104,6 +104,99 @@ static struct Cell *maze_get_cell(struct Maze *maze, int row, int col)
 	return &maze->board[row * maze->num_cols + col];
 }
 
+static gboolean maze_cell_is_perimeter(struct Maze *maze, struct Cell *cell)
+{
+	return cell->row == 0 || cell->col == 0 ||
+	       cell->row >= maze->num_rows - 1 ||
+	       cell->col >= maze->num_cols - 1;
+}
+
+static void maze_cell_reset(struct Maze *maze, struct Cell *cell)
+{
+	if (!cell)
+		return;
+
+	if (maze_cell_is_perimeter(maze, cell)) {
+		cell->value = 0;
+		cell->color = BLACK;
+	} else if (cell->value) {
+		cell->color = WHITE;
+	}
+}
+
+static struct Cell *maze_get_cell_for_start_or_end(struct Maze *maze, int row, int col)
+{
+	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
+	struct Cell *cell;
+	struct Cell *n_cell;
+	int i;
+
+	if (maze->solver_running)
+		return NULL;
+
+	cell = maze_get_cell(maze, row, col);
+	if (!cell)
+		return NULL;
+
+	if (cell->value == 0) {
+		if (!maze_cell_is_perimeter(maze, cell))
+			return NULL;
+
+		/* The cell is part of the perimeter walls */
+		for (i = 0; i < 4; i++) {
+			int *n = neighbours[i];
+			int n_row = cell->row + n[0];
+			int n_col = cell->col + n[1];
+
+			n_cell = maze_get_cell(maze, n_row, n_col);
+			if (!n_cell || n_cell->value == 0)
+				continue;
+
+			return cell;
+		}
+
+		return NULL;
+	}
+
+	return cell;
+}
+
+int maze_set_end_cell(struct Maze *maze, int row, int col)
+{
+	struct Cell *cell;
+
+	cell = maze_get_cell_for_start_or_end(maze, row, col);
+	if (!cell)
+		return -1;
+
+	/* Reset previous start_cell */
+	maze_cell_reset(maze, maze->end_cell);
+
+	cell->color = LIGHTBLUE;
+	cell->value = 1;
+	maze->end_cell = cell;
+
+	return 0;
+}
+
+int maze_set_start_cell(struct Maze *maze, int row, int col)
+{
+	struct Cell *cell;
+
+	cell = maze_get_cell_for_start_or_end(maze, row, col);
+	if (!cell)
+		return -1;
+
+	/* Reset previous start_cell */
+	maze_cell_reset(maze, maze->start_cell);
+
+	cell->color = RED;
+	cell->value = 1;
+	maze->start_cell = cell;
+
+	return 0;
+}
+
 gboolean maze_solver_running(struct Maze *maze)
 {
 	return maze->solver_running;

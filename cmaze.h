@@ -60,6 +60,9 @@ uint maze_get_anim_speed(struct Maze *maze);
 int maze_get_num_rows(struct Maze *maze);
 int maze_get_num_cols(struct Maze *maze);
 
+int maze_set_start_cell(struct Maze *maze, int row, int col);
+int maze_set_end_cell(struct Maze *maze, int row, int col);
+
 gboolean maze_get_difficult(struct Maze *maze);
 
 SolverAlgorithm maze_get_solver_algorithm(struct Maze *maze);
