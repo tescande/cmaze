@@ -511,14 +511,10 @@ exit:
  */
 static int maze_solve_dfs(struct Maze *maze)
 {
-	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
 	GList *stack = NULL;
 	GList *elem;
 	struct Cell *cell;
 	struct Cell *n_cell;
-	int n_row;
-	int n_col;
-	int *n;
 	int i;
 	int err = 0;
 
@@ -547,12 +543,7 @@ static int maze_solve_dfs(struct Maze *maze)
 			break;
 
 		for (i = 0; i < 4; i++) {
-			n = neighbours[i];
-			n_row = cell->row + n[0];
-			n_col = cell->col + n[1];
-
-			n_cell = maze_get_cell(maze, n_row, n_col);
-
+			n_cell = maze_get_neighbour_cell(maze, cell, i);
 			if (!n_cell || n_cell->type == CELL_TYPE_WALL)
 				continue;
 
