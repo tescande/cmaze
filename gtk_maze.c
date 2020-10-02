@@ -22,6 +22,17 @@ struct MazeGui {
 	cairo_t *cr;
 };
 
+typedef enum {
+	BLACK = 0,
+	WHITE,
+	RED,
+	GREEN,
+	BLUE,
+	LIGHTBLUE,
+	LIGHTGRAY,
+	DARKGRAY,
+} CellColor;
+
 static void get_gdk_color(CellColor cell_color, GdkRGBA *color)
 {
 	color->alpha = 1.0;

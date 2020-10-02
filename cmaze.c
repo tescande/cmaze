@@ -6,7 +6,6 @@ struct Cell {
 	int col;
 	int value;
 	int heuristic;
-	CellColor color;
 	CellType type;
 
 	struct Cell *parent;
@@ -116,13 +115,10 @@ static void maze_cell_reset(struct Maze *maze, struct Cell *cell)
 	if (!cell)
 		return;
 
-	if (maze_cell_is_perimeter(maze, cell)) {
+	if (maze_cell_is_perimeter(maze, cell))
 		cell->type = CELL_TYPE_WALL;
-		cell->color = BLACK;
-	} else if (cell->type != CELL_TYPE_WALL) {
+	else if (cell->type != CELL_TYPE_WALL)
 		cell->type = CELL_TYPE_EMPTY;
-		cell->color = WHITE;
-	}
 }
 
 static struct Cell *maze_get_cell_for_start_or_end(struct Maze *maze, int row, int col)
@@ -173,7 +169,6 @@ int maze_set_end_cell(struct Maze *maze, int row, int col)
 	/* Reset previous start_cell */
 	maze_cell_reset(maze, maze->end_cell);
 
-	cell->color = LIGHTBLUE;
 	cell->type = CELL_TYPE_END;
 	maze->end_cell = cell;
 
@@ -191,7 +186,6 @@ int maze_set_start_cell(struct Maze *maze, int row, int col)
 	/* Reset previous start_cell */
 	maze_cell_reset(maze, maze->start_cell);
 
-	cell->color = RED;
 	cell->type = CELL_TYPE_START;
 	maze->start_cell = cell;
 
@@ -258,15 +252,12 @@ static void _maze_clear_board(struct Maze *maze)
 
 		cell->value = 0;
 		cell->heuristic = 0;
-		cell->color = WHITE;
 		cell->parent = NULL;
 		if (cell->type != CELL_TYPE_WALL)
 			cell->type = CELL_TYPE_EMPTY;
 	}
 
-	maze->start_cell->color = RED;
 	maze->start_cell->type = CELL_TYPE_START;
-	maze->end_cell->color = LIGHTBLUE;
 	maze->end_cell->type = CELL_TYPE_END;
 }
 
@@ -312,7 +303,6 @@ static int maze_solve_a_star(struct Maze *maze)
 		closed = g_list_prepend(closed, cell);
 
 		board_cell = maze_get_cell(maze, cell->row, cell->col);
-		board_cell->color = LIGHTGRAY;
 		board_cell->type = CELL_TYPE_PATH_VISITED;
 
 		if (!cell_cmp(cell, maze->end_cell))
@@ -351,7 +341,6 @@ static int maze_solve_a_star(struct Maze *maze)
 					      (GCompareFunc)cell_cmp_heuristic);
 
 				board_cell = maze_get_cell(maze, n_row, n_col);
-				board_cell->color = DARKGRAY;
 				board_cell->type = CELL_TYPE_PATH_HEAD;
 			} else {
 				g_free(n_cell);
@@ -363,16 +352,13 @@ static int maze_solve_a_star(struct Maze *maze)
 
 	while (cell) {
 		path = maze_get_cell(maze, cell->row, cell->col);
-		path->color = GREEN;
 		path->type = CELL_TYPE_PATH_SOLUTION;
 		maze->path_len++;
 
 		cell = cell->parent;
 	}
 
-	maze->start_cell->color = RED;
 	maze->start_cell->type = CELL_TYPE_START;
-	maze->end_cell->color = LIGHTBLUE;
 	maze->end_cell->type = CELL_TYPE_END;
 
 exit:
@@ -404,7 +390,6 @@ static void maze_color_path(struct Maze *maze)
 			return;
 
 		maze->path_len++;
-		cell->color = GREEN;
 		cell->type = CELL_TYPE_PATH_SOLUTION;
 		low_value = cell->value;
 
@@ -428,9 +413,7 @@ static void maze_color_path(struct Maze *maze)
 		}
 	}
 
-	maze->start_cell->color = RED;
 	maze->start_cell->type = CELL_TYPE_START;
-	maze->end_cell->color = LIGHTBLUE;
 	maze->end_cell->type = CELL_TYPE_END;
 }
 
@@ -476,17 +459,14 @@ static int maze_solve_always_turn(struct Maze *maze)
 		if (maze->anim_speed < 100)
 			g_usleep(125 * (100 - maze->anim_speed));
 
-		cell->color = DARKGRAY;
 		cell->type = CELL_TYPE_PATH_HEAD;
 		cell->value = value++;
 
 		g_queue_push_tail(head_cells, cell);
 		if (g_queue_get_length(head_cells) > HEAD_QUEUE_LENGTH) {
 			n_cell = g_queue_pop_head(head_cells);
-			if (g_queue_find(head_cells, n_cell) == NULL) {
-				n_cell->color = LIGHTGRAY;
+			if (g_queue_find(head_cells, n_cell) == NULL)
 				n_cell->type = CELL_TYPE_PATH_VISITED;
-			}
 		}
 
 		row = cell->row;
@@ -510,10 +490,8 @@ static int maze_solve_always_turn(struct Maze *maze)
 	cell->value = value++;
 
 	/* Reset color for the head cells */
-	while ((n_cell = g_queue_pop_head(head_cells)) != NULL) {
-		n_cell->color = LIGHTGRAY;
+	while ((n_cell = g_queue_pop_head(head_cells)) != NULL)
 		n_cell->type = CELL_TYPE_PATH_VISITED;
-	}
 
 	maze_color_path(maze);
 
@@ -566,7 +544,6 @@ static int maze_solve_dfs(struct Maze *maze)
 			continue;
 
 		cell->value = cell->parent ? cell->parent->value + 1 : 1;
-		cell->color = DARKGRAY;
 		cell->type = CELL_TYPE_PATH_HEAD;
 
 		if (cell == maze->end_cell)
@@ -583,7 +560,6 @@ static int maze_solve_dfs(struct Maze *maze)
 				continue;
 
 			n_cell->parent = cell;
-			n_cell->color = LIGHTGRAY;
 			n_cell->type = CELL_TYPE_PATH_VISITED;
 			stack = g_list_prepend(stack, n_cell);
 		}
@@ -641,7 +617,6 @@ int maze_solve_bfs(struct Maze *maze)
 		if (cell == maze->end_cell)
 			break;
 
-		cell->color = LIGHTGRAY;
 		cell->type = CELL_TYPE_PATH_VISITED;
 
 		for (i = 0; i < 4; i++) {
@@ -655,7 +630,6 @@ int maze_solve_bfs(struct Maze *maze)
 				continue;
 
 			n_cell->value = cell->value + 1;
-			n_cell->color = DARKGRAY;
 			n_cell->type = CELL_TYPE_PATH_HEAD;
 			g_queue_push_tail(queue, n_cell);
 		}
@@ -759,18 +733,6 @@ int maze_solve_thread(struct Maze *maze, MazeSolverFunc cb, void *userdata)
 	g_timeout_add(40, (GSourceFunc)maze_solve_monitor, maze);
 
 	return 0;
-}
-
-CellColor maze_get_cell_color(struct Maze *maze, int row, int col)
-{
-	struct Cell *cell;
-
-	cell = maze_get_cell(maze, row, col);
-
-	if (cell)
-		return cell->color;
-
-	return BLACK;
 }
 
 CellType maze_get_cell_type(struct Maze *maze, int row, int col)
@@ -908,7 +870,6 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 			w = walls[(i + r) % 4];
 			w_cell = maze_get_cell(maze, row + w[0], col + w[1]);
 			w_cell->value = 1;
-			w_cell->color = WHITE;
 			w_cell->type = CELL_TYPE_EMPTY;
 
 			break;
@@ -916,10 +877,8 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 	}
 
 	maze->start_cell = maze_get_cell(maze, 1, 0);
-	maze->start_cell->color = RED;
 	maze->start_cell->type = CELL_TYPE_START;
 	maze->end_cell = maze_get_cell(maze, maze->num_rows - 2, maze->num_cols - 1);
-	maze->end_cell->color = LIGHTBLUE;
 	maze->end_cell->type = CELL_TYPE_END;
 
 	if (!difficult)
@@ -960,7 +919,6 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 		}
 
 		/* Remove that wall */
-		cell->color = WHITE;
 		cell->type = CELL_TYPE_EMPTY;
 	}
 

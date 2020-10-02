@@ -17,17 +17,6 @@
 typedef void(*MazeSolverFunc)(int, void *);
 
 typedef enum {
-	BLACK = 0,
-	WHITE,
-	RED,
-	GREEN,
-	BLUE,
-	LIGHTBLUE,
-	LIGHTGRAY,
-	DARKGRAY,
-} CellColor;
-
-typedef enum {
 	SOLVER_A_STAR = 0,
 	SOLVER_ALWAYS_TURN_LEFT,
 	SOLVER_ALWAYS_TURN_RIGHT,
@@ -77,8 +66,6 @@ gboolean maze_get_difficult(struct Maze *maze);
 
 SolverAlgorithm maze_get_solver_algorithm(struct Maze *maze);
 void maze_set_solver_algorithm(struct Maze *maze, SolverAlgorithm algo);
-
-CellColor maze_get_cell_color(struct Maze *maze, int row, int col);
 
 CellType maze_get_cell_type(struct Maze *maze, int row, int col);
 
