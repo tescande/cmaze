@@ -33,6 +33,16 @@ struct Maze {
 	struct Cell *end_cell;
 };
 
+typedef enum {
+	DIR_UP = 0,
+	DIR_RIGHT,
+	DIR_DOWN,
+	DIR_LEFT,
+	DIR_LAST = DIR_LEFT,
+	DIR_NUM_DIRS = 4,
+	DIR_FIRST = DIR_UP,
+} Direction;
+
 static struct Cell *maze_get_cell(struct Maze *maze, int row, int col);
 
 static int cell_is_wall(struct Maze *maze, int row, int col)
@@ -101,6 +111,26 @@ static struct Cell *maze_get_cell(struct Maze *maze, int row, int col)
 		return NULL;
 
 	return &maze->board[row * maze->num_cols + col];
+}
+
+static struct Cell *maze_get_neighbour_cell_offset(struct Maze *maze,
+						   struct Cell *cell,
+						   Direction dir, int offset)
+{
+	/* Neighbour cells in UP, RIGHT, DOWN, and LEFT diections */
+	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
+
+	if (dir >= DIR_NUM_DIRS)
+		return NULL;
+
+	return maze_get_cell(maze, cell->row + (neighbours[dir][0] * offset),
+				   cell->col + (neighbours[dir][1] * offset));
+}
+
+static struct Cell *maze_get_neighbour_cell(struct Maze *maze,
+					    struct Cell *cell, Direction dir)
+{
+	return maze_get_neighbour_cell_offset(maze, cell, dir, 1);
 }
 
 static gboolean maze_cell_is_perimeter(struct Maze *maze, struct Cell *cell)
@@ -769,19 +799,15 @@ void maze_print_board(struct Maze *maze)
 
 int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficult)
 {
-	int neighbours[4][2] = { { -2, 0 },  { 0, 2 }, { 2, 0 }, { 0, -2 } };
-	int walls[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
 	struct Cell *cell;
 	struct Cell *n_cell;
 	GList *stack = NULL;
 	GList *elem;
 	int row;
 	int col;
-	int n_row;
-	int n_col;
 	int r;
 	int i;
-	int *n;
+	Direction dir;
 
 	if (maze->solver_running)
 		return -1;
@@ -844,16 +870,13 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 		row = cell->row;
 		col = cell->col;
 
-		r = random() % 4;
-		i = 0;
-		while (i < 4) {
-			n = neighbours[(i + r) % 4];
-			n_row = row + n[0];
-			n_col = col + n[1];
-
-			n_cell = maze_get_cell(maze, n_row, n_col);
+		dir = random() % DIR_NUM_DIRS;
+		i = DIR_FIRST;
+		while (i++ <= DIR_NUM_DIRS) {
+			n_cell = maze_get_neighbour_cell_offset(maze, cell,
+								dir, 2);
 			if (!n_cell || n_cell->value == 1) {
-				i++;
+				dir = (dir + 1) % DIR_NUM_DIRS;
 				continue;
 			}
 
@@ -861,8 +884,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 			stack = g_list_prepend(stack, n_cell);
 
 			/* Remove wall between cells */
-			n = walls[(i + r) % 4];
-			n_cell = maze_get_cell(maze, row + n[0], col + n[1]);
+			n_cell = maze_get_neighbour_cell(maze, cell, dir);
 			n_cell->value = 1;
 			n_cell->type = CELL_TYPE_EMPTY;
 
@@ -873,7 +895,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 		 * No more suitable neighbour for this cell. We can remove it
 		 * from the stack
 		 */
-		if (i >= 4)
+		if (i >= DIR_NUM_DIRS)
 			stack = g_list_delete_link(stack, elem);
 	}
 
@@ -891,14 +913,16 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 			col = (random() % (maze->num_cols - 2)) + 1;
 			cell = maze_get_cell(maze, row, col);
 
-			if (! cell_is_wall(maze, row, col))
+			if (cell->type != CELL_TYPE_WALL)
 				continue;
 
 			r = 0;
-			if (cell_is_wall(maze, row - 1, col))
-				r += 1;
-			if (cell_is_wall(maze, row + 1, col))
-				r += 1;
+			n_cell = maze_get_neighbour_cell(maze, cell, DIR_UP);
+			if (n_cell && n_cell->type == CELL_TYPE_WALL)
+				r++;
+			n_cell = maze_get_neighbour_cell(maze, cell, DIR_DOWN);
+			if (n_cell && n_cell->type == CELL_TYPE_WALL)
+				r++;
 			/*
 			 * Only 1 wall up or down means we're on a wall end or
 			 * at the top of a T. Try with another wall.
@@ -906,10 +930,12 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 			if (r == 1)
 				continue;
 
-			if (cell_is_wall(maze, row, col - 1))
-				r += 1;
-			if (cell_is_wall(maze, row, col + 1))
-				r += 1;
+			n_cell = maze_get_neighbour_cell(maze, cell, DIR_LEFT);
+			if (n_cell && n_cell->type == CELL_TYPE_WALL)
+				r++;
+			n_cell = maze_get_neighbour_cell(maze, cell, DIR_RIGHT);
+			if (n_cell && n_cell->type == CELL_TYPE_WALL)
+				r++;
 
 			/*
 			 * We're surounded by 2 walls verticaly or horizontaly.
