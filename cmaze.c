@@ -43,19 +43,6 @@ typedef enum {
 	DIR_FIRST = DIR_UP,
 } Direction;
 
-static struct Cell *maze_get_cell(struct Maze *maze, int row, int col);
-
-static int cell_is_wall(struct Maze *maze, int row, int col)
-{
-	struct Cell *cell;
-
-	cell = maze_get_cell(maze, row, col);
-	if (cell)
-		return (cell->type == CELL_TYPE_WALL);
-
-	return 1;
-}
-
 static int cell_cmp(struct Cell *c1, struct Cell *c2)
 {
 	if (c1->row < c2->row)
@@ -806,7 +793,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 	row = (random() % (maze->num_rows - 2)) / 2 * 2 + 1;
 	col = (random() % (maze->num_cols - 2)) / 2 * 2 + 1;
 	cell = maze_get_cell(maze, row, col);
-	if (!cell || cell_is_wall(maze, row, col))
+	if (!cell || cell->type == CELL_TYPE_WALL)
 		return -1;
 
 	cell->value = 1;
