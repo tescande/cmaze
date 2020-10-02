@@ -35,6 +35,16 @@ typedef enum {
 	SOLVER_BFS,
 } SolverAlgorithm;
 
+typedef enum {
+	CELL_TYPE_EMPTY = 0,
+	CELL_TYPE_WALL,
+	CELL_TYPE_END,
+	CELL_TYPE_START,
+	CELL_TYPE_PATH_HEAD,
+	CELL_TYPE_PATH_VISITED,
+	CELL_TYPE_PATH_SOLUTION,
+} CellType;
+
 struct Cell;
 struct Maze;
 
@@ -69,6 +79,8 @@ SolverAlgorithm maze_get_solver_algorithm(struct Maze *maze);
 void maze_set_solver_algorithm(struct Maze *maze, SolverAlgorithm algo);
 
 CellColor maze_get_cell_color(struct Maze *maze, int row, int col);
+
+CellType maze_get_cell_type(struct Maze *maze, int row, int col);
 
 int gtk_maze_run(struct Maze *maze);
 

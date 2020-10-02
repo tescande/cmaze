@@ -256,10 +256,33 @@ static void on_draw(GtkDrawingArea *da, cairo_t *cr, struct MazeGui *gui)
 	for (row = 0; row < num_rows; row++) {
 		for (col = 0; col < num_cols; col++) {
 			GtkAllocation rect;
+			CellType cell_type;
 
-			cell_color = maze_get_cell_color(maze, row, col);
-			if (cell_color == WHITE)
+			cell_type = maze_get_cell_type(maze, row, col);
+
+			switch (cell_type) {
+			case CELL_TYPE_EMPTY:
 				continue;
+
+			case CELL_TYPE_WALL:
+				cell_color = BLACK;
+				break;
+			case CELL_TYPE_START:
+				cell_color = RED;
+				break;
+			case CELL_TYPE_END:
+				cell_color = LIGHTBLUE;
+				break;
+			case CELL_TYPE_PATH_HEAD:
+				cell_color = DARKGRAY;
+				break;
+			case CELL_TYPE_PATH_VISITED:
+				cell_color = LIGHTGRAY;
+				break;
+			case CELL_TYPE_PATH_SOLUTION:
+				cell_color = GREEN;
+				break;
+			}
 
 			get_gdk_color(cell_color, &color);
 
