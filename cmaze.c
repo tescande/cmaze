@@ -428,37 +428,25 @@ static void maze_set_solution_path(struct Maze *maze)
 	maze->end_cell->type = CELL_TYPE_END;
 }
 
-#define ORIENTATION_NORTH 0
-#define ORIENTATION_EAST  1
-#define ORIENTATION_SOUTH 2
-#define ORIENTATION_WEST  3
-
 #define HEAD_QUEUE_LENGTH 50
 
 static int maze_solve_always_turn(struct Maze *maze)
 {
-	int left_neighbours[4][2] = { { 0, -1 }, { -1, 0 }, { 0, 1 }, { 1, 0 } };
-	int right_neighbours[4][2] = { { 0, 1 },  { -1, 0 }, { 0, -1 }, { 1, 0 } };
-	int *neighbours;
 	struct Cell *cell;
 	struct Cell *n_cell;
 	int i;
-	int orientation;
-	int row;
-	int col;
+	Direction dir;
+	int dir_offset;
 	int err = 0;
 	int value;
 	GQueue *head_cells;
 
-	neighbours = (maze->solver_algorithm == SOLVER_ALWAYS_TURN_LEFT) ?
-			(int *)left_neighbours :
-			(int *)right_neighbours;
-
 	head_cells = g_queue_new();
 
-	cell = maze->start_cell;
-	orientation = ORIENTATION_EAST;
+	dir = DIR_FIRST;
+	dir_offset = maze->solver_algorithm == SOLVER_ALWAYS_TURN_RIGHT ? 1 : -1;
 
+	cell = maze->start_cell;
 	value = 1;
 
 	while (cell != maze->end_cell) {
@@ -480,20 +468,18 @@ static int maze_solve_always_turn(struct Maze *maze)
 				n_cell->type = CELL_TYPE_PATH_VISITED;
 		}
 
-		row = cell->row;
-		col = cell->col;
-
+		/* First look left or right */
+		dir = (dir + dir_offset) % DIR_NUM_DIRS;
 		for (i = 0; i < 4; i++) {
-			int *n = neighbours + (((orientation + i) & 0x3) * 2);
-			int n_row = row + n[0];
-			int n_col = col + n[1];
-
-			cell = maze_get_cell(maze, n_row, n_col);
-			if (cell && cell->type != CELL_TYPE_WALL) {
-				/* Not a wall. Go on */
-				orientation = (orientation + i - 1) & 0x3;
-				break;
+			n_cell = maze_get_neighbour_cell(maze, cell, dir);
+			if (!n_cell || n_cell->type == CELL_TYPE_WALL) {
+				dir = (dir - dir_offset) % DIR_NUM_DIRS;
+				continue;
 			}
+
+			/* Not a wall. Go on */
+			cell = n_cell;
+			break;
 		}
 	}
 
