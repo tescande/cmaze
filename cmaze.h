@@ -17,11 +17,11 @@
 typedef void(*MazeSolverFunc)(int, void *);
 
 typedef enum {
-	SOLVER_A_STAR = 0,
+	SOLVER_BFS = 0,
+	SOLVER_DFS,
+	SOLVER_A_STAR,
 	SOLVER_ALWAYS_TURN_LEFT,
 	SOLVER_ALWAYS_TURN_RIGHT,
-	SOLVER_DFS,
-	SOLVER_BFS,
 } SolverAlgorithm;
 
 typedef enum {

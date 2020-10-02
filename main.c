@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 	srand(seed);
 
 	maze = maze_alloc();
-	maze_set_solver_algorithm(maze, SOLVER_A_STAR);
+	maze_set_solver_algorithm(maze, SOLVER_BFS);
 	maze_set_anim_speed(maze, anim_speed);
 
 	err = maze_create(maze, num_rows, num_cols, difficult);
