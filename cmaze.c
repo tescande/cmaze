@@ -296,13 +296,12 @@ void maze_clear_board(struct Maze *maze)
 
 static int maze_solve_a_star(struct Maze *maze)
 {
-	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
 	struct Cell *cell;
 	struct Cell *path;
 	GList *open = NULL;
 	GList *closed = NULL;
 	GList *elem;
-	int i;
+	Direction dir;
 	int err = 0;
 	struct Cell *board_cell;
 
@@ -333,20 +332,14 @@ static int maze_solve_a_star(struct Maze *maze)
 		if (!cell_cmp(cell, maze->end_cell))
 			break;
 
-		for (i = 0; i < 4; i++) {
-			int *n = neighbours[i];
-			int n_row = cell->row + n[0];
-			int n_col = cell->col + n[1];
+		for (dir = DIR_FIRST; dir < DIR_NUM_DIRS; dir++) {
 			struct Cell *n_cell;
 
-			if (n_row < 0 || n_row >= maze->num_rows ||
-			    n_col < 0 || n_col >= maze->num_cols)
+			n_cell = maze_get_neighbour_cell(maze, cell, dir);
+			if (!n_cell || n_cell->type == CELL_TYPE_WALL)
 				continue;
 
-			if (cell_is_wall(maze, n_row, n_col))
-				continue;
-
-			n_cell = cell_new(n_row, n_col);
+			n_cell = cell_new(n_cell->row, n_cell->col);
 
 			if (g_list_find_custom(closed, n_cell,
 					       (GCompareFunc)cell_cmp)) {
@@ -365,7 +358,9 @@ static int maze_solve_a_star(struct Maze *maze)
 				open = g_list_insert_sorted(open, n_cell,
 					      (GCompareFunc)cell_cmp_heuristic);
 
-				board_cell = maze_get_cell(maze, n_row, n_col);
+				board_cell = maze_get_cell(maze,
+							   n_cell->row,
+							   n_cell->col);
 				board_cell->type = CELL_TYPE_PATH_HEAD;
 			} else {
 				g_free(n_cell);
