@@ -390,16 +390,10 @@ exit:
 
 static void maze_set_solution_path(struct Maze *maze)
 {
-	int neighbours[4][2] = { { 0, -1 }, { -1, 0 }, { 0, 1 }, { 1, 0 } };
 	struct Cell *cell;
 	struct Cell *n_cell;
-	int low_value;
-	int row;
-	int col;
-	int n_row;
-	int n_col;
-	int *n;
-	int i;
+	struct Cell *t_cell;
+	Direction dir;
 
 	cell = maze->end_cell;
 	maze->path_len = 1;
@@ -411,26 +405,23 @@ static void maze_set_solution_path(struct Maze *maze)
 
 		maze->path_len++;
 		cell->type = CELL_TYPE_PATH_SOLUTION;
-		low_value = cell->value;
-
-		row = cell->row;
-		col = cell->col;
+		t_cell = cell;
 
 		/* Search for a neighbours with the lowest value */
-		for (i = 0; i < 4; i++) {
-			n = neighbours[i];
-			n_row = row + n[0];
-			n_col = col + n[1];
-
-			n_cell = maze_get_cell(maze, n_row, n_col);
+		for (dir = DIR_FIRST; dir < DIR_NUM_DIRS; dir++) {
+			n_cell = maze_get_neighbour_cell(maze, cell, dir);
 			if (!n_cell || n_cell->type == CELL_TYPE_WALL)
 				continue;
 
-			if (n_cell->value && n_cell->value < low_value) {
-				low_value = n_cell->value;
-				cell = n_cell;
-			}
+			if (n_cell->value && n_cell->value < t_cell->value)
+				t_cell = n_cell;
 		}
+
+		/* Return if didn't find any cell with a lower value */
+		if (cell == t_cell)
+			return;
+
+		cell = t_cell;
 	}
 
 	maze->start_cell->type = CELL_TYPE_START;
