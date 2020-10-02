@@ -6,7 +6,6 @@ struct Cell {
 	int col;
 	int value;
 	int heuristic;
-	gboolean is_path;
 	CellColor color;
 	CellType type;
 
@@ -258,7 +257,6 @@ static void _maze_clear_board(struct Maze *maze)
 		cell = &maze->board[i];
 
 		cell->value = 0;
-		cell->is_path = FALSE;
 		cell->heuristic = 0;
 		cell->color = WHITE;
 		cell->parent = NULL;
@@ -365,7 +363,6 @@ static int maze_solve_a_star(struct Maze *maze)
 
 	while (cell) {
 		path = maze_get_cell(maze, cell->row, cell->col);
-		path->is_path = TRUE;
 		path->color = GREEN;
 		path->type = CELL_TYPE_PATH_SOLUTION;
 		maze->path_len++;
@@ -408,7 +405,6 @@ static void maze_color_path(struct Maze *maze)
 
 		maze->path_len++;
 		cell->color = GREEN;
-		cell->is_path = TRUE;
 		cell->type = CELL_TYPE_PATH_SOLUTION;
 		low_value = cell->value;
 
