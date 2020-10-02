@@ -153,10 +153,9 @@ static void maze_cell_reset(struct Maze *maze, struct Cell *cell)
 
 static struct Cell *maze_get_cell_for_start_or_end(struct Maze *maze, int row, int col)
 {
-	int neighbours[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
 	struct Cell *cell;
 	struct Cell *n_cell;
-	int i;
+	Direction dir;
 
 	if (maze->solver_running)
 		return NULL;
@@ -170,12 +169,8 @@ static struct Cell *maze_get_cell_for_start_or_end(struct Maze *maze, int row, i
 			return NULL;
 
 		/* The cell is part of the perimeter walls */
-		for (i = 0; i < 4; i++) {
-			int *n = neighbours[i];
-			int n_row = cell->row + n[0];
-			int n_col = cell->col + n[1];
-
-			n_cell = maze_get_cell(maze, n_row, n_col);
+		for (dir = DIR_FIRST; dir < DIR_NUM_DIRS; dir++) {
+			n_cell = maze_get_neighbour_cell(maze, cell, dir);
 			if (!n_cell || n_cell->type == CELL_TYPE_WALL)
 				continue;
 
