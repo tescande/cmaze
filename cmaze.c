@@ -769,15 +769,19 @@ void maze_print_board(struct Maze *maze)
 
 int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficult)
 {
-	int row;
-	int col;
-	int r;
-	int i;
-	struct Cell *cell;
-	GList *stack = NULL;
-	GList *elem;
 	int neighbours[4][2] = { { -2, 0 },  { 0, 2 }, { 2, 0 }, { 0, -2 } };
 	int walls[4][2] = { { -1, 0 },  { 0, 1 }, { 1, 0 }, { 0, -1 } };
+	struct Cell *cell;
+	struct Cell *n_cell;
+	GList *stack = NULL;
+	GList *elem;
+	int row;
+	int col;
+	int n_row;
+	int n_col;
+	int r;
+	int i;
+	int *n;
 
 	if (maze->solver_running)
 		return -1;
@@ -836,44 +840,41 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 	while (stack != NULL) {
 		elem = g_list_first(stack);
 		cell = elem->data;
-		stack = g_list_delete_link(stack, elem);
 
 		row = cell->row;
 		col = cell->col;
 
 		r = random() % 4;
-		for (i = 0; i < 4; i++) {
-			int *n = neighbours[(i + r) % 4];
-			int n_row = row + n[0];
-			int n_col = col + n[1];
-			struct Cell *n_cell;
-			struct Cell *w_cell;
-			int *w;
-
-			if (n_row < 0 || n_row >= maze->num_rows ||
-			    n_col < 0 || n_col >= maze->num_cols)
-				continue;
+		i = 0;
+		while (i < 4) {
+			n = neighbours[(i + r) % 4];
+			n_row = row + n[0];
+			n_col = col + n[1];
 
 			n_cell = maze_get_cell(maze, n_row, n_col);
-			if (!n_cell)
-				return -1;
-
-			if (n_cell->value == 1)
+			if (!n_cell || n_cell->value == 1) {
+				i++;
 				continue;
-
-			stack = g_list_prepend(stack, cell);
+			}
 
 			n_cell->value = 1;
 			stack = g_list_prepend(stack, n_cell);
 
 			/* Remove wall between cells */
-			w = walls[(i + r) % 4];
-			w_cell = maze_get_cell(maze, row + w[0], col + w[1]);
-			w_cell->value = 1;
-			w_cell->type = CELL_TYPE_EMPTY;
+			n = walls[(i + r) % 4];
+			n_cell = maze_get_cell(maze, row + n[0], col + n[1]);
+			n_cell->value = 1;
+			n_cell->type = CELL_TYPE_EMPTY;
 
 			break;
 		}
+
+		/*
+		 * No more suitable neighbour for this cell. We can remove it
+		 * from the stack
+		 */
+		if (i >= 4)
+			stack = g_list_delete_link(stack, elem);
 	}
 
 	maze->start_cell = maze_get_cell(maze, 1, 0);
