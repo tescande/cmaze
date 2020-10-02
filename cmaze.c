@@ -368,7 +368,7 @@ exit:
 	return err;
 }
 
-static void maze_color_path(struct Maze *maze)
+static void maze_set_solution_path(struct Maze *maze)
 {
 	int neighbours[4][2] = { { 0, -1 }, { -1, 0 }, { 0, 1 }, { 1, 0 } };
 	struct Cell *cell;
@@ -493,7 +493,7 @@ static int maze_solve_always_turn(struct Maze *maze)
 	while ((n_cell = g_queue_pop_head(head_cells)) != NULL)
 		n_cell->type = CELL_TYPE_PATH_VISITED;
 
-	maze_color_path(maze);
+	maze_set_solution_path(maze);
 
 exit:
 	g_queue_free(head_cells);
@@ -565,7 +565,7 @@ static int maze_solve_dfs(struct Maze *maze)
 		}
 	}
 
-	maze_color_path(maze);
+	maze_set_solution_path(maze);
 
 exit:
 	g_list_free(stack);
@@ -635,7 +635,7 @@ int maze_solve_bfs(struct Maze *maze)
 		}
 	}
 
-	maze_color_path(maze);
+	maze_set_solution_path(maze);
 
 exit:
 	g_queue_free(queue);
