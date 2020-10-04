@@ -286,7 +286,6 @@ static int maze_solve_a_star(struct Maze *maze)
 	struct Cell *cell;
 	struct Cell *path;
 	GList *open = NULL;
-	GList *closed = NULL;
 	GList *elem;
 	Direction dir;
 	int err = 0;
@@ -311,10 +310,11 @@ static int maze_solve_a_star(struct Maze *maze)
 		cell = (struct Cell *)elem->data;
 		open = g_list_delete_link(open, elem);
 
-		closed = g_list_prepend(closed, cell);
-
 		board_cell = maze_get_cell(maze, cell->row, cell->col);
 		board_cell->type = CELL_TYPE_PATH_VISITED;
+
+		/* Put the cell in the closed list */
+		board_cell->value = 1;
 
 		if (!cell_cmp(cell, maze->end_cell))
 			break;
@@ -323,11 +323,12 @@ static int maze_solve_a_star(struct Maze *maze)
 			struct Cell *n_cell;
 
 			board_cell = maze_get_neighbour_cell(maze, cell, dir);
-			if (!board_cell || board_cell->type == CELL_TYPE_WALL)
-				continue;
-
-			if (g_list_find_custom(closed, n_cell,
-					       (GCompareFunc)cell_cmp))
+			/*
+			 * n_cell->value != 0 means the cell is in the closed
+			 * list and can be skipped
+			 */
+			if (!board_cell || board_cell->type == CELL_TYPE_WALL ||
+			    board_cell->value)
 				continue;
 
 			n_cell = cell_new(board_cell->row, board_cell->col);
@@ -367,7 +368,6 @@ static int maze_solve_a_star(struct Maze *maze)
 
 exit:
 	g_list_free_full(open, (GDestroyNotify)g_free);
-	g_list_free_full(closed, (GDestroyNotify)g_free);
 
 	return err;
 }
