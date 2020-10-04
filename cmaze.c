@@ -281,6 +281,12 @@ void maze_clear_board(struct Maze *maze)
 	_maze_clear_board(maze);
 }
 
+static inline void maze_anim_delay(struct Maze *maze)
+{
+	if (maze->anim_speed < 100)
+		g_usleep(125 * (100 - maze->anim_speed));
+}
+
 static int maze_solve_a_star(struct Maze *maze)
 {
 	struct Cell *cell;
@@ -303,8 +309,7 @@ static int maze_solve_a_star(struct Maze *maze)
 			goto exit;
 		}
 
-		if (maze->anim_speed < 100)
-			g_usleep(125 * (100 - maze->anim_speed));
+		maze_anim_delay(maze);
 
 		elem = g_list_first(open);
 		cell = (struct Cell *)elem->data;
@@ -439,8 +444,7 @@ static int maze_solve_always_turn(struct Maze *maze)
 			goto exit;
 		}
 
-		if (maze->anim_speed < 100)
-			g_usleep(125 * (100 - maze->anim_speed));
+		maze_anim_delay(maze);
 
 		cell->type = CELL_TYPE_PATH_HEAD;
 		cell->value = value++;
@@ -510,8 +514,7 @@ static int maze_solve_dfs(struct Maze *maze)
 			goto exit;
 		}
 
-		if (maze->anim_speed < 100)
-			g_usleep(125 * (100 - maze->anim_speed));
+		maze_anim_delay(maze);
 
 		elem = g_list_first(stack);
 		cell = elem->data;
@@ -577,8 +580,7 @@ int maze_solve_bfs(struct Maze *maze)
 			goto exit;
 		}
 
-		if (maze->anim_speed < 100)
-			g_usleep(125 * (100 - maze->anim_speed));
+		maze_anim_delay(maze);
 
 		cell = g_queue_pop_head(queue);
 
