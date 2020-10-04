@@ -284,7 +284,7 @@ void maze_clear_board(struct Maze *maze)
 static inline void maze_anim_delay(struct Maze *maze)
 {
 	if (maze->anim_speed < 100)
-		g_usleep(125 * (100 - maze->anim_speed));
+		g_usleep((maze->anim_speed - 100) * (maze->anim_speed - 100));
 }
 
 static int maze_solve_a_star(struct Maze *maze)
