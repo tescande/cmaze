@@ -326,14 +326,11 @@ static int maze_solve_a_star(struct Maze *maze)
 			if (!board_cell || board_cell->type == CELL_TYPE_WALL)
 				continue;
 
-			n_cell = cell_new(board_cell->row, board_cell->col);
-
 			if (g_list_find_custom(closed, n_cell,
-					       (GCompareFunc)cell_cmp)) {
-				g_free(n_cell);
+					       (GCompareFunc)cell_cmp))
 				continue;
-			}
 
+			n_cell = cell_new(board_cell->row, board_cell->col);
 			n_cell->parent = cell;
 			n_cell->value = cell->value + 1;
 			n_cell->heuristic = n_cell->value +
