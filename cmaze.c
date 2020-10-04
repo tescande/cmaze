@@ -322,11 +322,11 @@ static int maze_solve_a_star(struct Maze *maze)
 		for (dir = DIR_FIRST; dir < DIR_NUM_DIRS; dir++) {
 			struct Cell *n_cell;
 
-			n_cell = maze_get_neighbour_cell(maze, cell, dir);
-			if (!n_cell || n_cell->type == CELL_TYPE_WALL)
+			board_cell = maze_get_neighbour_cell(maze, cell, dir);
+			if (!board_cell || board_cell->type == CELL_TYPE_WALL)
 				continue;
 
-			n_cell = cell_new(n_cell->row, n_cell->col);
+			n_cell = cell_new(board_cell->row, board_cell->col);
 
 			if (g_list_find_custom(closed, n_cell,
 					       (GCompareFunc)cell_cmp)) {
