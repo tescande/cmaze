@@ -520,22 +520,19 @@ static int maze_solve_dfs(struct Maze *maze)
 		cell = elem->data;
 		stack = g_list_delete_link(stack, elem);
 
-		if (cell->value)
-			continue;
-
 		cell->value = cell->parent ? cell->parent->value + 1 : 1;
-		cell->type = CELL_TYPE_PATH_HEAD;
+		cell->type = CELL_TYPE_PATH_VISITED;
 
 		if (cell == maze->end_cell)
 			break;
 
 		for (i = 0; i < 4; i++) {
 			n_cell = maze_get_neighbour_cell(maze, cell, i);
-			if (!n_cell || n_cell->type == CELL_TYPE_WALL)
+			if (!n_cell || n_cell->type == CELL_TYPE_WALL || n_cell->value)
 				continue;
 
 			n_cell->parent = cell;
-			n_cell->type = CELL_TYPE_PATH_VISITED;
+			n_cell->type = CELL_TYPE_PATH_HEAD;
 			stack = g_list_prepend(stack, n_cell);
 		}
 	}
