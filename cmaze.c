@@ -417,8 +417,6 @@ static void maze_set_solution_path(struct Maze *maze)
 	maze->end_cell->type = CELL_TYPE_END;
 }
 
-#define HEAD_QUEUE_LENGTH 50
-
 static int maze_solve_always_turn(struct Maze *maze)
 {
 	struct Cell *cell;
@@ -428,9 +426,6 @@ static int maze_solve_always_turn(struct Maze *maze)
 	int dir_offset;
 	int err = 0;
 	int value;
-	GQueue *head_cells;
-
-	head_cells = g_queue_new();
 
 	dir = DIR_FIRST;
 	dir_offset = maze->solver_algorithm == SOLVER_ALWAYS_TURN_RIGHT ? 1 : -1;
@@ -446,15 +441,7 @@ static int maze_solve_always_turn(struct Maze *maze)
 
 		maze_anim_delay(maze);
 
-		cell->type = CELL_TYPE_PATH_HEAD;
 		cell->value = value++;
-
-		g_queue_push_tail(head_cells, cell);
-		if (g_queue_get_length(head_cells) > HEAD_QUEUE_LENGTH) {
-			n_cell = g_queue_pop_head(head_cells);
-			if (g_queue_find(head_cells, n_cell) == NULL)
-				n_cell->type = CELL_TYPE_PATH_VISITED;
-		}
 
 		/* First look left or right */
 		dir = (dir + dir_offset) % DIR_NUM_DIRS;
@@ -466,6 +453,8 @@ static int maze_solve_always_turn(struct Maze *maze)
 			}
 
 			/* Not a wall. Go on */
+			cell->type = CELL_TYPE_PATH_VISITED;
+			n_cell->type = CELL_TYPE_PATH_HEAD;
 			cell = n_cell;
 			break;
 		}
@@ -474,15 +463,9 @@ static int maze_solve_always_turn(struct Maze *maze)
 	/* Last cell */
 	cell->value = value++;
 
-	/* Reset color for the head cells */
-	while ((n_cell = g_queue_pop_head(head_cells)) != NULL)
-		n_cell->type = CELL_TYPE_PATH_VISITED;
-
 	maze_set_solution_path(maze);
 
 exit:
-	g_queue_free(head_cells);
-
 	return err;
 }
 
