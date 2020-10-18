@@ -8,8 +8,8 @@ struct MazeGui {
 
 	GtkWidget *drawing_area;
 	GtkLabel  *info_label;
-	GtkEntry  *entry_num_rows;
-	GtkEntry  *entry_num_cols;
+	GtkSpinButton  *spin_num_rows;
+	GtkSpinButton  *spin_num_cols;
 	GtkWidget *new_button;
 	GtkWidget *clear_button;
 	GtkWidget *solve_button;
@@ -116,26 +116,6 @@ exit_err:
 	g_fprintf(stderr, "Can't set text label\n");
 }
 
-static int entry_get_number(GtkEntry *entry)
-{
-	const char *str;
-	int num;
-
-	str = gtk_entry_get_text(entry);
-	if (sscanf(str, "%u", &num) != 1)
-		num = -1;
-
-	return num;
-}
-
-static void entry_set_number(GtkEntry *entry, int number)
-{
-	char buf[5] = { 0 };
-
-	g_snprintf(buf, 4, "%d", number);
-	gtk_entry_set_text(entry, buf);
-}
-
 static void cairo_surface_free(struct MazeGui *gui)
 {
 	cairo_destroy(gui->cr);
@@ -175,14 +155,14 @@ static void on_new_clicked(GtkButton *button, struct MazeGui *gui)
 	int num_cols;
 	gboolean difficult;
 
-	num_rows = entry_get_number(gui->entry_num_rows);
-	num_cols = entry_get_number(gui->entry_num_cols);
+	num_rows = gtk_spin_button_get_value(gui->spin_num_rows);
+	num_cols = gtk_spin_button_get_value(gui->spin_num_cols);
 	difficult = gtk_toggle_button_get_active(gui->difficult_check);
 
 	maze_create(gui->maze, num_rows, num_cols, difficult);
 
-	entry_set_number(gui->entry_num_rows, maze_get_num_rows(gui->maze));
-	entry_set_number(gui->entry_num_cols, maze_get_num_cols(gui->maze));
+	gtk_spin_button_set_value(gui->spin_num_rows, maze_get_num_rows(gui->maze));
+	gtk_spin_button_set_value(gui->spin_num_cols, maze_get_num_cols(gui->maze));
 
 	cairo_surface_free(gui);
 	cairo_surface_alloc(gui);
@@ -320,21 +300,6 @@ static void on_draw(GtkDrawingArea *da, cairo_t *cr, struct MazeGui *gui)
 	cairo_paint(cr);
 }
 
-static void on_insert_text(GtkEditable *editable, char *new_text,
-			   int new_text_length, gpointer position,
-			   gpointer user_data)
-{
-	int i = 0;
-
-	while (new_text[i]) {
-		if (!g_ascii_isdigit(new_text[i++])) {
-			g_signal_stop_emission_by_name(G_OBJECT(editable),
-						       "insert-text");
-			return;
-		}
-	}
-}
-
 static void on_scale_changed(GtkRange *range, struct MazeGui *gui)
 {
 	maze_set_anim_speed(gui->maze, (uint)gtk_range_get_value(range));
@@ -379,7 +344,7 @@ static void gui_show(struct MazeGui *gui)
 	GtkWidget *grid;
 	GtkWidget *label_rows;
 	GtkWidget *label_cols;
-	GtkEntry *entry;
+	GtkWidget *spin;
 	GtkToggleButton *check;
 	GtkWidget *button;
 	GtkWidget *label;
@@ -420,7 +385,7 @@ static void gui_show(struct MazeGui *gui)
 
 	grid = gtk_grid_new();
 	gtk_container_set_border_width(GTK_CONTAINER(grid), 10);
-	gtk_grid_set_column_homogeneous(GTK_GRID(grid), TRUE);
+	gtk_grid_set_column_homogeneous(GTK_GRID(grid), FALSE);
 	gtk_grid_set_row_spacing(GTK_GRID(grid), 5);
 	gtk_grid_set_column_spacing(GTK_GRID(grid), 5);
 	gtk_container_add(GTK_CONTAINER(frame), grid);
@@ -429,14 +394,10 @@ static void gui_show(struct MazeGui *gui)
 	gtk_label_set_xalign(GTK_LABEL(label_rows), 1.0);
 	gtk_container_add(GTK_CONTAINER(grid), label_rows);
 
-	entry = GTK_ENTRY(gtk_entry_new());
-	gui->entry_num_rows = entry;
-	gtk_entry_set_max_length(entry, 3);
-	gtk_entry_set_width_chars(entry, 3);
-	entry_set_number(entry, maze_get_num_rows(maze));
-	g_signal_connect(G_OBJECT(entry), "insert-text",
-			 G_CALLBACK(on_insert_text), gui);
-	gtk_grid_attach_next_to(GTK_GRID(grid), GTK_WIDGET(entry), label_rows,
+	spin = gtk_spin_button_new_with_range(MAZE_MIN_ROWS, MAZE_MAX_ROWS, 10);
+	gui->spin_num_rows = GTK_SPIN_BUTTON(spin);
+	gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin), maze_get_num_rows(maze));
+	gtk_grid_attach_next_to(GTK_GRID(grid), spin, label_rows,
 				GTK_POS_RIGHT, 1, 1);
 
 	label_cols = gtk_label_new("Cols:");
@@ -444,14 +405,10 @@ static void gui_show(struct MazeGui *gui)
 	gtk_grid_attach_next_to(GTK_GRID(grid), label_cols, label_rows,
 				GTK_POS_BOTTOM, 1, 1);
 
-	entry = GTK_ENTRY(gtk_entry_new());
-	gui->entry_num_cols = entry;
-	gtk_entry_set_max_length(entry, 3);
-	gtk_entry_set_width_chars(entry, 3);
-	entry_set_number(entry, maze_get_num_cols(maze));
-	g_signal_connect(G_OBJECT(entry), "insert-text",
-			 G_CALLBACK(on_insert_text), gui);
-	gtk_grid_attach_next_to(GTK_GRID(grid), GTK_WIDGET(entry), label_cols,
+	spin = gtk_spin_button_new_with_range(MAZE_MIN_COLS, MAZE_MAX_COLS, 10);
+	gui->spin_num_cols = GTK_SPIN_BUTTON(spin);
+	gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin), maze_get_num_cols(maze));
+	gtk_grid_attach_next_to(GTK_GRID(grid), GTK_WIDGET(spin), label_cols,
 				GTK_POS_RIGHT, 1, 1);
 
 	check = GTK_TOGGLE_BUTTON(gtk_check_button_new_with_label("Difficult"));
