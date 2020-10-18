@@ -340,8 +340,8 @@ static void gui_show(struct MazeGui *gui)
 	GtkWidget *window;
 	GtkWidget *hbox;
 	GtkWidget *vbox;
+	GtkWidget *vbox2;
 	GtkWidget *drawing_area;
-	GtkWidget *grid;
 	GtkWidget *label_rows;
 	GtkWidget *label_cols;
 	GtkWidget *spin;
@@ -383,53 +383,50 @@ static void gui_show(struct MazeGui *gui)
 	gtk_frame_set_label_align(GTK_FRAME(frame), 0.05, 0.5);
 	gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);
 
-	grid = gtk_grid_new();
-	gtk_container_set_border_width(GTK_CONTAINER(grid), 10);
-	gtk_grid_set_column_homogeneous(GTK_GRID(grid), FALSE);
-	gtk_grid_set_row_spacing(GTK_GRID(grid), 5);
-	gtk_grid_set_column_spacing(GTK_GRID(grid), 5);
-	gtk_container_add(GTK_CONTAINER(frame), grid);
+	vbox2 = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+	gtk_container_set_border_width(GTK_CONTAINER(vbox2), 10);
+	gtk_container_add(GTK_CONTAINER(frame), vbox2);
+
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, FALSE, 0);
 
 	label_rows = gtk_label_new("Rows:");
 	gtk_label_set_xalign(GTK_LABEL(label_rows), 1.0);
-	gtk_container_add(GTK_CONTAINER(grid), label_rows);
+	gtk_box_pack_start(GTK_BOX(hbox), label_rows, TRUE, FALSE, 0);
 
 	spin = gtk_spin_button_new_with_range(MAZE_MIN_ROWS, MAZE_MAX_ROWS, 10);
 	gui->spin_num_rows = GTK_SPIN_BUTTON(spin);
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin), maze_get_num_rows(maze));
-	gtk_grid_attach_next_to(GTK_GRID(grid), spin, label_rows,
-				GTK_POS_RIGHT, 1, 1);
+	gtk_box_pack_start(GTK_BOX(hbox), spin, FALSE, FALSE, 0);
+
+	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, FALSE, 0);
 
 	label_cols = gtk_label_new("Cols:");
 	gtk_label_set_xalign(GTK_LABEL(label_cols), 1.0);
-	gtk_grid_attach_next_to(GTK_GRID(grid), label_cols, label_rows,
-				GTK_POS_BOTTOM, 1, 1);
+	gtk_box_pack_start(GTK_BOX(hbox), label_cols, TRUE, FALSE, 0);
 
 	spin = gtk_spin_button_new_with_range(MAZE_MIN_COLS, MAZE_MAX_COLS, 10);
 	gui->spin_num_cols = GTK_SPIN_BUTTON(spin);
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin), maze_get_num_cols(maze));
-	gtk_grid_attach_next_to(GTK_GRID(grid), GTK_WIDGET(spin), label_cols,
-				GTK_POS_RIGHT, 1, 1);
+	gtk_box_pack_start(GTK_BOX(hbox), spin, FALSE, FALSE, 0);
 
 	check = GTK_TOGGLE_BUTTON(gtk_check_button_new_with_label("Difficult"));
 	gui->difficult_check = check;
 	gtk_toggle_button_set_active(check, maze_get_difficult(maze));
-	gtk_grid_attach_next_to(GTK_GRID(grid), GTK_WIDGET(check), label_cols,
-				GTK_POS_BOTTOM, 2, 1);
+	gtk_box_pack_start(GTK_BOX(vbox2), GTK_WIDGET(check), FALSE, FALSE, 0);
 
 	button = gtk_button_new_with_label("New");
 	gui->new_button = g_object_ref(button);
 	g_signal_connect(G_OBJECT(button), "clicked",
 			 G_CALLBACK(on_new_clicked), gui);
-	gtk_grid_attach_next_to(GTK_GRID(grid), button, GTK_WIDGET(check),
-				GTK_POS_BOTTOM, 2, 1);
+	gtk_box_pack_start(GTK_BOX(vbox2), button, FALSE, FALSE, 0);
 
 	button = gtk_button_new_with_label("Clear");
 	gui->clear_button = g_object_ref(button);
 	g_signal_connect(G_OBJECT(button), "clicked",
 			 G_CALLBACK(on_clear_clicked), gui);
-	gtk_grid_attach_next_to(GTK_GRID(grid), button, gui->new_button,
-				GTK_POS_BOTTOM, 2, 1);
+	gtk_box_pack_start(GTK_BOX(vbox2), button, FALSE, FALSE, 0);
 
 	frame = gtk_frame_new("Solver Algorithm");
 	gtk_frame_set_label_align(GTK_FRAME(frame), 0.1, 0.5);
