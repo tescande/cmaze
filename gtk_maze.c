@@ -125,7 +125,11 @@ static void cairo_surface_free(struct MazeGui *gui)
 
 static void cairo_surface_alloc(struct MazeGui *gui)
 {
-	GtkAllocation rect;
+	GtkAllocation rect = { 0 };
+	GtkAllocation curr_rect;
+	GdkDisplay *disp;
+	GdkMonitor *monitor;
+	int num_monitors;
 	int num_rows;
 	int num_cols;
 	int surface_width;
@@ -134,9 +138,15 @@ static void cairo_surface_alloc(struct MazeGui *gui)
 	num_rows = maze_get_num_rows(gui->maze);
 	num_cols = maze_get_num_cols(gui->maze);
 
-	gdk_monitor_get_workarea(
-		gdk_display_get_primary_monitor(gdk_display_get_default()),
-		&rect);
+	/* Get the largest screen resolution for the maze cairo surface */
+	disp = gdk_display_get_default();
+	num_monitors = gdk_display_get_n_monitors(disp);
+	while (num_monitors--) {
+		monitor = gdk_display_get_monitor(disp, num_monitors);
+		gdk_monitor_get_workarea(monitor, &curr_rect);
+		if (curr_rect.width * curr_rect.height > rect.width * rect.height)
+			rect = curr_rect;
+	}
 
 	gui->cell_width = (rect.width / num_cols) + 1;
 	gui->cell_height = (rect.height / num_rows) + 1;
