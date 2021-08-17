@@ -6,6 +6,7 @@
 struct MazeGui {
 	struct Maze *maze;
 
+	GtkApplication *app;
 	GtkWidget *drawing_area;
 	GtkLabel  *info_label;
 	GtkSpinButton  *spin_num_rows;
@@ -330,11 +331,9 @@ static gboolean on_mouse_clicked(GtkWidget *da, GdkEventButton *event,
 static void on_destroy(GtkWindow *win, struct MazeGui *gui)
 {
 	maze_solve_thread_cancel(gui->maze);
-
-	gtk_main_quit();
 }
 
-static void gui_show(struct MazeGui *gui)
+static void gui_activate(GtkApplication* app, struct MazeGui *gui)
 {
 	struct Maze *maze = gui->maze;
 	GtkWidget *window;
@@ -354,7 +353,7 @@ static void gui_show(struct MazeGui *gui)
 
 	cairo_surface_alloc(gui);
 
-	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	window = gtk_application_window_new(app);
 	gtk_window_set_title(GTK_WINDOW(window), "CMaze");
 	g_signal_connect(G_OBJECT(window), "destroy",
 			 G_CALLBACK(on_destroy), gui);
@@ -493,10 +492,12 @@ int gtk_maze_run(struct Maze *maze)
 	gui = g_malloc0(sizeof(*gui));
 	gui->maze = maze;
 
-	gtk_init(0, NULL);
-	gui_show(gui);
+	gui->app = gtk_application_new("org.escande.boids", G_APPLICATION_NON_UNIQUE);
+	g_signal_connect(gui->app, "activate", G_CALLBACK(gui_activate), gui);
 
-	gtk_main();
+	g_application_run(G_APPLICATION(gui->app), 0, NULL);
+
+	g_object_unref(gui->app);
 
 	gui_cleanup(gui);
 	g_free(gui);
