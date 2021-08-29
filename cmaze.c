@@ -1,6 +1,13 @@
 /* SPDX-License-Identifier: MIT */
 #include "cmaze.h"
 
+typedef enum {
+	STOPPED = 0,
+	RUNNING,
+	CANCELED,
+	SOLVED,
+} SolverStatus;
+
 struct Cell {
 	int row;
 	int col;
@@ -19,8 +26,7 @@ struct Maze {
 	gboolean difficult;
 	uint anim_speed;
 
-	gboolean solver_running;
-	gboolean solver_cancel;
+	SolverStatus solver_status;
 	GThread *solver_thread;
 	SolverAlgorithm solver_algorithm;
 	MazeSolverFunc solver_cb;
@@ -144,7 +150,7 @@ static struct Cell *maze_get_cell_for_start_or_end(struct Maze *maze, int row, i
 	struct Cell *n_cell;
 	Direction dir;
 
-	if (maze->solver_running)
+	if (maze->solver_status == RUNNING)
 		return NULL;
 
 	cell = maze_get_cell(maze, row, col);
@@ -206,7 +212,7 @@ int maze_set_start_cell(struct Maze *maze, int row, int col)
 
 gboolean maze_solver_running(struct Maze *maze)
 {
-	return maze->solver_running;
+	return (maze->solver_status == RUNNING);
 }
 
 void maze_set_anim_speed(struct Maze *maze, uint speed)
@@ -275,7 +281,7 @@ static void _maze_clear_board(struct Maze *maze)
 
 void maze_clear_board(struct Maze *maze)
 {
-	if (maze->solver_running)
+	if (maze->solver_status == RUNNING)
 		return;
 
 	_maze_clear_board(maze);
@@ -304,7 +310,7 @@ static int maze_solve_a_star(struct Maze *maze)
 	open = g_list_append(open, cell);
 
 	while (open != NULL) {
-		if (maze->solver_cancel) {
+		if (maze->solver_status == CANCELED) {
 			err = -1;
 			goto exit;
 		}
@@ -389,7 +395,7 @@ static void maze_set_solution_path(struct Maze *maze)
 
 	/* Light up the shortest path */
 	while (cell != maze->start_cell) {
-		if (maze->solver_cancel)
+		if (maze->solver_status == CANCELED)
 			return;
 
 		maze->path_len++;
@@ -434,7 +440,7 @@ static int maze_solve_always_turn(struct Maze *maze)
 	value = 1;
 
 	while (cell != maze->end_cell) {
-		if (maze->solver_cancel) {
+		if (maze->solver_status == CANCELED) {
 			err = -1;
 			goto exit;
 		}
@@ -492,7 +498,7 @@ static int maze_solve_dfs(struct Maze *maze)
 	stack = g_list_prepend(stack, maze->start_cell);
 
 	while (stack != NULL) {
-		if (maze->solver_cancel) {
+		if (maze->solver_status == CANCELED) {
 			err = -1;
 			goto exit;
 		}
@@ -555,7 +561,7 @@ int maze_solve_bfs(struct Maze *maze)
 	g_queue_push_tail(queue, maze->start_cell);
 
 	while (!g_queue_is_empty(queue)) {
-		if (maze->solver_cancel) {
+		if (maze->solver_status == CANCELED) {
 			err = -1;
 			goto exit;
 		}
@@ -601,12 +607,20 @@ static gboolean maze_solve_monitor(struct Maze *maze)
 {
 	int reason;
 
-	if (maze->solver_cancel)
-		reason = SOLVER_CB_REASON_CANCELED;
-	else if (maze->solver_running)
+
+	switch (maze->solver_status) {
+	case RUNNING:
 		reason = SOLVER_CB_REASON_RUNNING;
-	else
+		break;
+	case CANCELED:
+		reason = SOLVER_CB_REASON_CANCELED;
+		break;
+	case SOLVED:
 		reason = SOLVER_CB_REASON_SOLVED;
+		break;
+	case STOPPED:
+		break;
+	}
 
 	if (maze->solver_cb)
 		maze->solver_cb(reason, maze->solver_cb_userdata);
@@ -614,12 +628,12 @@ static gboolean maze_solve_monitor(struct Maze *maze)
 	if (reason == SOLVER_CB_REASON_SOLVED)
 		maze_solve_thread_join(maze);
 
-	return maze->solver_running;
+	return (maze->solver_status == RUNNING);
 }
 
 void maze_solve_thread_cancel(struct Maze *maze)
 {
-	maze->solver_cancel = TRUE;
+	maze->solver_status = CANCELED;
 
 	maze_solve_thread_join(maze);
 }
@@ -660,15 +674,15 @@ int maze_solve(struct Maze *maze)
 
 	maze->solve_time = g_get_monotonic_time() - start;
 
-	maze->solver_running = FALSE;
+	if (!result)
+		maze->solver_status = SOLVED;
 
 	return result;
 }
 
 int maze_solve_thread(struct Maze *maze, MazeSolverFunc cb, void *userdata)
 {
-	maze->solver_cancel = FALSE;
-	maze->solver_running = TRUE;
+	maze->solver_status = RUNNING;
 	maze->solver_cb = cb;
 	maze->solver_cb_userdata = userdata;
 
@@ -724,7 +738,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 	int i;
 	Direction dir;
 
-	if (maze->solver_running)
+	if (maze->solver_status == RUNNING)
 		return -1;
 
 	if (num_rows < MAZE_MIN_ROWS)

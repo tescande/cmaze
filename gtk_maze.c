@@ -192,8 +192,7 @@ static void maze_solver_cb(int reason, struct MazeGui *gui)
 {
 	struct Maze *maze = gui->maze;
 
-	if (reason == SOLVER_CB_REASON_SOLVED ||
-	    reason == SOLVER_CB_REASON_CANCELED) {
+	if (reason != SOLVER_CB_REASON_RUNNING) {
 		gtk_widget_set_sensitive(gui->new_button, TRUE);
 		gtk_widget_set_sensitive(gui->clear_button, TRUE);
 		gtk_button_set_label(GTK_BUTTON(gui->solve_button), "Solve");
