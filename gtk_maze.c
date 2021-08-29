@@ -311,7 +311,7 @@ static void on_draw(GtkDrawingArea *da, cairo_t *cr, struct MazeGui *gui)
 	cairo_paint(cr);
 }
 
-static void on_scale_changed(GtkRange *range, struct MazeGui *gui)
+static void on_speed_changed(GtkRange *range, struct MazeGui *gui)
 {
 	maze_set_anim_speed(gui->maze, (uint)gtk_range_get_value(range));
 }
@@ -469,7 +469,7 @@ static void gui_activate(GtkApplication* app, struct MazeGui *gui)
 	gtk_scale_set_draw_value(GTK_SCALE(scale), FALSE);
 	gtk_range_set_value(GTK_RANGE(scale), maze_get_anim_speed(maze));
 	g_signal_connect(G_OBJECT(scale), "value-changed",
-			 G_CALLBACK(on_scale_changed), gui);
+			 G_CALLBACK(on_speed_changed), gui);
 	gtk_container_add(GTK_CONTAINER(hbox), scale);
 
 	button = gtk_button_new_with_label("Solve");
