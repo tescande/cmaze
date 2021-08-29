@@ -465,7 +465,7 @@ static void gui_activate(GtkApplication* app, struct MazeGui *gui)
 	gtk_box_set_homogeneous(GTK_BOX(hbox), TRUE);
 	gtk_container_add(GTK_CONTAINER(frame), hbox);
 
-	scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 100, 1);
+	scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 50, 100, 1);
 	gtk_scale_set_draw_value(GTK_SCALE(scale), FALSE);
 	gtk_range_set_value(GTK_RANGE(scale), maze_get_anim_speed(maze));
 	g_signal_connect(G_OBJECT(scale), "value-changed",
