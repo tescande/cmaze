@@ -6,6 +6,7 @@ typedef enum {
 	RUNNING,
 	CANCELED,
 	SOLVED,
+	UNSOLVABLE,
 } SolverStatus;
 
 struct Cell {
@@ -464,6 +465,13 @@ static int maze_solve_always_turn(struct Maze *maze)
 			cell = n_cell;
 			break;
 		}
+
+		if (!cell_cmp(cell, maze->start_cell)) {
+			// Infinite loop
+			maze->solver_status = UNSOLVABLE;
+			err = -1;
+			goto exit;
+		}
 	}
 
 	/* Last cell */
@@ -617,6 +625,9 @@ static gboolean maze_solve_monitor(struct Maze *maze)
 		break;
 	case SOLVED:
 		reason = SOLVER_CB_REASON_SOLVED;
+		break;
+	case UNSOLVABLE:
+		reason = SOLVER_CB_REASON_INFLOOP;
 		break;
 	case STOPPED:
 		break;

@@ -13,6 +13,7 @@
 #define SOLVER_CB_REASON_RUNNING  0
 #define SOLVER_CB_REASON_SOLVED   1
 #define SOLVER_CB_REASON_CANCELED 2
+#define SOLVER_CB_REASON_INFLOOP  3
 
 typedef void(*MazeSolverFunc)(int, void *);
 

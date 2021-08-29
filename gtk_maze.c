@@ -201,6 +201,8 @@ static void maze_solver_cb(int reason, struct MazeGui *gui)
 			label_set_text(gui->info_label, "Length: %d\nTime: %.03fs",
 				       maze_get_path_length(maze),
 				       maze_get_solve_time(maze));
+		else if (reason == SOLVER_CB_REASON_INFLOOP)
+			label_set_text(gui->info_label, "Unsolvalble (infinite loop)");
 	}
 
 	gtk_widget_queue_draw(gui->drawing_area);
