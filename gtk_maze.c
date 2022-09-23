@@ -14,7 +14,7 @@ struct MazeGui {
 	GtkWidget *new_button;
 	GtkWidget *clear_button;
 	GtkWidget *solve_button;
-	GtkToggleButton *difficult_check;
+	GtkToggleButton *complex_check;
 	GtkComboBoxText *algo_combo;
 
 	int cell_width;
@@ -164,13 +164,13 @@ static void on_new_clicked(GtkButton *button, struct MazeGui *gui)
 {
 	int num_rows;
 	int num_cols;
-	gboolean difficult;
+	gboolean complex;
 
 	num_rows = gtk_spin_button_get_value(gui->spin_num_rows);
 	num_cols = gtk_spin_button_get_value(gui->spin_num_cols);
-	difficult = gtk_toggle_button_get_active(gui->difficult_check);
+	complex = gtk_toggle_button_get_active(gui->complex_check);
 
-	maze_create(gui->maze, num_rows, num_cols, difficult);
+	maze_create(gui->maze, num_rows, num_cols, complex);
 
 	gtk_spin_button_set_value(gui->spin_num_rows, maze_get_num_rows(gui->maze));
 	gtk_spin_button_set_value(gui->spin_num_cols, maze_get_num_cols(gui->maze));
@@ -421,8 +421,8 @@ static void gui_activate(GtkApplication* app, struct MazeGui *gui)
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(spin), maze_get_num_cols(maze));
 	gtk_box_pack_start(GTK_BOX(hbox), spin, FALSE, FALSE, 0);
 
-	check = GTK_TOGGLE_BUTTON(gtk_check_button_new_with_label("Difficult"));
-	gui->difficult_check = check;
+	check = GTK_TOGGLE_BUTTON(gtk_check_button_new_with_label("Complex"));
+	gui->complex_check = check;
 	gtk_toggle_button_set_active(check, maze_get_difficult(maze));
 	gtk_box_pack_start(GTK_BOX(vbox2), GTK_WIDGET(check), FALSE, FALSE, 0);
 

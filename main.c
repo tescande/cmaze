@@ -6,7 +6,7 @@ int main(int argc, char **argv)
 	int err = 0;
 	int num_rows = 121;
 	int num_cols = 121;
-	gboolean difficult = FALSE;
+	gboolean complex = FALSE;
 	uint anim_speed = 100;
 	int seed = 0;
 	struct Maze *maze;
@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 		  "Number of rows", "ROWS" },
 		{ "num-cols",   'c', 0, G_OPTION_ARG_INT, &num_cols,
 		  "Number of columns", "COLS" },
-		{ "difficult",  'd', 0, G_OPTION_ARG_NONE, &difficult,
+		{ "complex",  'C', 0, G_OPTION_ARG_NONE, &complex,
 		  "Produce a more complex maze", NULL },
 		{ "anim-speed", 'a', 0, G_OPTION_ARG_INT, &anim_speed,
 		  "Specify the animation speed (in percent)", "VAL" },
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 	maze_set_solver_algorithm(maze, SOLVER_BFS);
 	maze_set_anim_speed(maze, anim_speed);
 
-	err = maze_create(maze, num_rows, num_cols, difficult);
+	err = maze_create(maze, num_rows, num_cols, complex);
 	if (err) {
 		g_fprintf(stderr, "create_maze failed\n");
 		goto exit_err;

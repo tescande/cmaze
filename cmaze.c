@@ -24,7 +24,7 @@ struct Maze {
 	int num_cols;
 	struct Cell *board;
 
-	gboolean difficult;
+	gboolean complex;
 	uint anim_speed;
 
 	SolverStatus solver_status;
@@ -238,7 +238,7 @@ int maze_get_num_cols(struct Maze *maze)
 
 gboolean maze_get_difficult(struct Maze *maze)
 {
-	return maze->difficult;
+	return maze->complex;
 }
 
 int maze_get_path_length(struct Maze *maze)
@@ -737,7 +737,7 @@ void maze_print_board(struct Maze *maze)
 	}
 }
 
-int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficult)
+int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean complex)
 {
 	struct Cell *cell;
 	struct Cell *n_cell;
@@ -774,7 +774,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 
 	maze->num_rows = num_rows;
 	maze->num_cols = num_cols;
-	maze->difficult = difficult;
+	maze->complex = complex;
 
 	if (!maze->board)
 		maze->board = g_malloc(num_rows * num_cols * sizeof(struct Cell));
@@ -844,7 +844,7 @@ int maze_create(struct Maze *maze, int num_rows, int num_cols, gboolean difficul
 	maze->end_cell = maze_get_cell(maze, maze->num_rows - 2, maze->num_cols - 1);
 	maze->end_cell->type = CELL_TYPE_END;
 
-	if (!difficult)
+	if (!complex)
 		return 0;
 
 	for (i = 0; i < MAX(maze->num_rows, maze->num_cols); i++) {
